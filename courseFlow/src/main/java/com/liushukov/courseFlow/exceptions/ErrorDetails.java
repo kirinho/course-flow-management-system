@@ -1,20 +1,21 @@
 package com.liushukov.courseFlow.exceptions;
 
-import java.util.Date;
+
+import java.time.Instant;
 
 public class ErrorDetails {
-    private Date timestamp;
+    private Instant timestamp;
     private String message;
     private String details;
 
-    public ErrorDetails(Date timestamp, String message, String details) {
+    public ErrorDetails(Instant timestamp, String message, String details) {
         this.timestamp = timestamp;
         this.message = message;
         this.details = details;
     }
     public ErrorDetails(){}
 
-    public Date getTimestamp() {
+    public Instant getTimestamp() {
         return timestamp;
     }
 

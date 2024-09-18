@@ -6,11 +6,13 @@ import com.liushukov.courseFlow.models.Course;
 import com.liushukov.courseFlow.models.CourseTypeEnum;
 import com.liushukov.courseFlow.models.SortingOrderEnum;
 import com.liushukov.courseFlow.repositories.CourseRepository;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.cache.annotation.Cacheable;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,6 +62,8 @@ public class CourseService {
         return courseRepository.save(course);
     }
 
+    @CachePut(value = "coursesById", key = "#course.id")
+    @CacheEvict(value = "allCourses", allEntries = true)
     public Course updateCourse(Course course, UpdateCourseDto courseDto) {
         if (courseDto.name() != null) {
             course.setName(courseDto.name());
@@ -73,6 +77,7 @@ public class CourseService {
         return courseRepository.save(course);
     }
 
+    @CacheEvict(value = { "coursesById", "coursesByName", "allCourses" }, key = "#course.id")
     public void deleteCourse(Course course) {
         courseRepository.delete(course);
     }

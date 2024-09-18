@@ -1,31 +1,27 @@
 package com.liushukov.courseFlow.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import java.io.Serializable;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
-@Table(name = "courses")
+@Table(name = "topics")
 @Entity
-public class Course implements Serializable {
+public class Topic {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", unique = true, nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "description", length = 3000, nullable = false)
+    @Column(name = "description", length = 600, nullable = false)
     private String description;
 
-    @Column(name = "type")
-    @Enumerated(EnumType.STRING)
-    private CourseTypeEnum typeEnum;
+    @ManyToOne
+    @JoinColumn(name = "course_id")
+    private Course course;
 
     @CreationTimestamp
     @Column(name = "createdAt")
@@ -35,16 +31,12 @@ public class Course implements Serializable {
     @Column(name = "updateAt")
     private Instant updateAt;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Topic> topics = new ArrayList<>();
+    public Topic() {}
 
-    public Course() {}
-
-    public Course(String name, String description, CourseTypeEnum typeEnum) {
+    public Topic(String name, String description, Course course) {
         this.name = name;
         this.description = description;
-        this.typeEnum = typeEnum;
+        this.course = course;
     }
 
     public Long getId() {
@@ -67,12 +59,11 @@ public class Course implements Serializable {
         this.description = description;
     }
 
-    public CourseTypeEnum getTypeEnum() {
-        return typeEnum;
+    public Course getCourse() {
+        return course;
     }
 
-    public void setTypeEnum(CourseTypeEnum typeEnum) {
-        this.typeEnum = typeEnum;
+    public void setCourse(Course course) {
+        this.course = course;
     }
-
 }

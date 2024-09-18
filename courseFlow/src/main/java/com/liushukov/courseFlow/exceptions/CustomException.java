@@ -2,9 +2,9 @@ package com.liushukov.courseFlow.exceptions;
 
 import org.springframework.http.HttpStatus;
 
-public class CustomException extends Exception{
+public class CustomException extends Exception {
     private final HttpStatus httpStatus;
-    public CustomException(String message, HttpStatus httpStatus){
+    public CustomException(String message, HttpStatus httpStatus) {
         super(message);
         this.httpStatus = httpStatus;
     }
