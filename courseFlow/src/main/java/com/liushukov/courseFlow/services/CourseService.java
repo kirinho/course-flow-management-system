@@ -6,6 +6,7 @@ import com.liushukov.courseFlow.models.Course;
 import com.liushukov.courseFlow.models.CourseTypeEnum;
 import com.liushukov.courseFlow.models.SortingOrderEnum;
 import com.liushukov.courseFlow.repositories.CourseRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
@@ -49,10 +50,11 @@ public class CourseService {
         return courseRepository
                 .findAll()
                 .stream()
-                .filter(course -> course.getTypeEnum() == typeEnum)
+                .filter(course -> course.getType() == typeEnum)
                 .toList();
     }
 
+    @Transactional
     public Course saveCourse(CourseDto courseDto) {
         var course = new Course(
                 courseDto.name(),
@@ -64,6 +66,7 @@ public class CourseService {
 
     @CachePut(value = "coursesById", key = "#course.id")
     @CacheEvict(value = "allCourses", allEntries = true)
+    @Transactional
     public Course updateCourse(Course course, UpdateCourseDto courseDto) {
         if (courseDto.name() != null) {
             course.setName(courseDto.name());
@@ -72,12 +75,13 @@ public class CourseService {
             course.setDescription(courseDto.description());
         }
         if (courseDto.type() != null) {
-            course.setTypeEnum(courseDto.type());
+            course.setType(courseDto.type());
         }
         return courseRepository.save(course);
     }
 
     @CacheEvict(value = { "coursesById", "coursesByName", "allCourses" }, key = "#course.id")
+    @Transactional
     public void deleteCourse(Course course) {
         courseRepository.delete(course);
     }

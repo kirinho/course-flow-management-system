@@ -25,7 +25,7 @@ public class Course implements Serializable {
 
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
-    private CourseTypeEnum typeEnum;
+    private CourseTypeEnum type;
 
     @CreationTimestamp
     @Column(name = "createdAt")
@@ -37,14 +37,14 @@ public class Course implements Serializable {
 
     @JsonIgnore
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Topic> topics = new ArrayList<>();
+    private List<Topic> topics;
 
     public Course() {}
 
-    public Course(String name, String description, CourseTypeEnum typeEnum) {
+    public Course(String name, String description, CourseTypeEnum type) {
         this.name = name;
         this.description = description;
-        this.typeEnum = typeEnum;
+        this.type = type;
     }
 
     public Long getId() {
@@ -67,12 +67,11 @@ public class Course implements Serializable {
         this.description = description;
     }
 
-    public CourseTypeEnum getTypeEnum() {
-        return typeEnum;
+    public CourseTypeEnum getType() {
+        return type;
     }
 
-    public void setTypeEnum(CourseTypeEnum typeEnum) {
-        this.typeEnum = typeEnum;
+    public void setType(CourseTypeEnum type) {
+        this.type = type;
     }
-
 }

@@ -39,8 +39,8 @@ public class UserController {
     @GetMapping("/list")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<List<User>> allUsers(
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String orderBy,
+            @RequestParam(value = "sortBy", defaultValue = "id") String sortBy,
+            @RequestParam(value = "orderBy", defaultValue = "asc") String orderBy,
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
             ) {
@@ -79,19 +79,19 @@ public class UserController {
 
     @DeleteMapping("/delete-account")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> deleteUser(Authentication authentication) {
+    public ResponseEntity<Void> deleteUser(Authentication authentication) {
         var user = userService.getUserFromAuthentication(authentication);
         if (user.isEnabled()) {
             userService.deleteUser(user);
-            return ResponseEntity.status(HttpStatus.OK).body("Account was successfully deleted!");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } else {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Account was already deleted");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 
     @PatchMapping("/update-account-admin/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> updateUserForAdmin(@PathVariable Long userId, @Valid @RequestBody UpdateUserDto userDto) {
+    public ResponseEntity<User> updateUserForAdmin(@PathVariable(name = "userId") Long userId, @Valid @RequestBody UpdateUserDto userDto) {
         var user = userService.getUserById(userId);
         return (user.isPresent())
                 ? ResponseEntity.status(HttpStatus.OK).body(userService.updateUser(user.get(), userDto))
@@ -100,17 +100,17 @@ public class UserController {
 
     @DeleteMapping("/delete-account-admin/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> deleteUserForAdmin(@PathVariable Long userId) {
+    public ResponseEntity<Void> deleteUserForAdmin(@PathVariable(name = "userId") Long userId) {
         var user = userService.getUserById(userId);
         if (user.isPresent()) {
             if (user.get().isEnabled()) {
                 userService.deleteUser(user.get());
-                return ResponseEntity.status(HttpStatus.OK).body("Account was successfully deleted!");
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
             } else {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Account was already deleted");
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with given id wasn't find!");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 }

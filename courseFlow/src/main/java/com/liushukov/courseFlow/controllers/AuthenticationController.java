@@ -34,16 +34,21 @@ public class AuthenticationController {
 
     @PostMapping("/signup")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterDto registerUserDto) throws CustomException {
-        User registeredUser = authenticationService.signup(registerUserDto);
-        var response = verificationAccountService.sendVerificationEmail(registeredUser);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        var user = userRepository.findByEmail(registerUserDto.email());
+        if (user.isEmpty()) {
+            User registeredUser = authenticationService.signup(registerUserDto);
+            var response = verificationAccountService.sendVerificationEmail(registeredUser);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
 
     @PostMapping("/login")
     public ResponseEntity<String> authenticate(@Valid @RequestBody LoginDto loginUserDto) {
         User authenticatedUser = authenticationService.authenticate(loginUserDto);
         String jwtToken = jwtService.generateToken(authenticatedUser);
-        return ResponseEntity.ok(jwtToken);
+        return ResponseEntity.status(HttpStatus.OK).body(jwtToken);
     }
 
     @PostMapping("/login-oauth2")
@@ -52,7 +57,7 @@ public class AuthenticationController {
                 .orElseGet(() -> authenticationService.signupOauth2(loginOauth2Dto));
 
         String jwtToken = jwtService.generateToken(user);
-        return ResponseEntity.ok(jwtToken);
+        return ResponseEntity.status(HttpStatus.OK).body(jwtToken);
     }
 
     @PostMapping("/verify-account")
@@ -62,7 +67,9 @@ public class AuthenticationController {
             if (!user.get().isEnabled()) {
                 var response = verificationAccountService.sendVerificationEmail(user.get());
                 return ResponseEntity.status(HttpStatus.OK).body(response);
-            } return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Account is already authenticated!");
+            } else {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Account is already authenticated!");
+            }
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User is not registered");
         }
@@ -78,7 +85,7 @@ public class AuthenticationController {
             if (exception instanceof CustomException){
                 throw exception;
             }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

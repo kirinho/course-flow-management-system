@@ -8,6 +8,7 @@ import com.liushukov.courseFlow.models.Role;
 import com.liushukov.courseFlow.models.SortingOrderEnum;
 import com.liushukov.courseFlow.models.User;
 import com.liushukov.courseFlow.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -64,6 +65,7 @@ public class UserService {
         return userRepository.findAll(pageable).getContent();
     }
 
+    @Transactional
     public User saveManager(RegisterDto registerDto) {
         var manager = new User()
                 .setName(registerDto.name())
@@ -74,6 +76,7 @@ public class UserService {
         return userRepository.save(manager);
     }
 
+    @Transactional
     public User updateUser(User user, UpdateUserDto userDto) {
         if (userDto.name() != null) {
             user.setName(userDto.name());
@@ -87,6 +90,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional
     public String updateEmail(User user, UpdateEmailDto emailDto) throws CustomException {
         user.setEmail(emailDto.email());
         user.setEnabled(false);
@@ -94,6 +98,7 @@ public class UserService {
         return verificationAccountService.sendVerificationEmail(user);
     }
 
+    @Transactional
     public void deleteUser(User user) {
         user.setEnabled(false);
         userRepository.save(user);

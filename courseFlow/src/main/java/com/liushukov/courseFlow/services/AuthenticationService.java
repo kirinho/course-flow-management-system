@@ -6,6 +6,7 @@ import com.liushukov.courseFlow.dtos.LoginOauth2Dto;
 import com.liushukov.courseFlow.models.Role;
 import com.liushukov.courseFlow.models.User;
 import com.liushukov.courseFlow.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +28,7 @@ public class AuthenticationService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public User signup(RegisterDto input) {
         var user = new User()
                 .setName(input.name())
@@ -50,6 +52,7 @@ public class AuthenticationService {
         return userRepository.findByEmail(input.email()).orElseThrow();
     }
 
+    @Transactional
     public User signupOauth2(LoginOauth2Dto input) {
         var user = new User()
                 .setName(input.name())

@@ -7,6 +7,7 @@ import com.liushukov.courseFlow.models.EmailToken;
 import com.liushukov.courseFlow.models.User;
 import com.liushukov.courseFlow.repositories.EmailTokenRepository;
 import com.liushukov.courseFlow.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -41,6 +42,7 @@ public class VerificationAccountService {
         return emailTokenRepository.findByToken(token);
     }
 
+    @Transactional
     public String createToken(User user){
         Optional<EmailToken> existingToken = emailTokenRepository.findByUserId(user.getId());
         existingToken.ifPresent(emailTokenRepository::delete);
@@ -67,6 +69,7 @@ public class VerificationAccountService {
         }
     }
 
+    @Transactional
     public User confirmEmail(String token) throws CustomException {
         Optional<EmailToken> confirmToken = getToken(token);
         if (confirmToken.isEmpty()){

@@ -56,8 +56,8 @@ public class CourseController {
 
     @GetMapping("/all")
     public ResponseEntity<List<Course>> allCourses(
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String orderBy,
+            @RequestParam(value = "sortBy", defaultValue = "id") String sortBy,
+            @RequestParam(value = "orderBy", defaultValue = "asc") String orderBy,
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
     ) {
@@ -81,7 +81,7 @@ public class CourseController {
     @PatchMapping("/update-course/{courseId}")
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<Course> updateCourse(
-            @PathVariable Long courseId,
+            @PathVariable(name = "courseId") Long courseId,
             @Valid @RequestBody UpdateCourseDto courseDto
     ) {
         var course = courseService.getCourseById(courseId);
@@ -95,13 +95,13 @@ public class CourseController {
 
     @DeleteMapping("/delete-course/{courseId}")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<String> deleteCourse(@PathVariable Long courseId) {
+    public ResponseEntity<Void> deleteCourse(@PathVariable(name = "courseId") Long courseId) {
         var course = courseService.getCourseById(courseId);
         if (course.isPresent()) {
             courseService.deleteCourse(course.get());
-            return ResponseEntity.status(HttpStatus.OK).body("The course was successfully deleted");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Course was not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 }
