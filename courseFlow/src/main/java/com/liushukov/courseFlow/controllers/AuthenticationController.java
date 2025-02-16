@@ -9,6 +9,7 @@ import com.liushukov.courseFlow.repositories.UserRepository;
 import com.liushukov.courseFlow.services.AuthenticationService;
 import com.liushukov.courseFlow.services.JwtService;
 import com.liushukov.courseFlow.services.VerificationAccountService;
+import com.liushukov.courseFlow.services.impl.VerificationAccountServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class AuthenticationController {
 
     private final VerificationAccountService verificationAccountService;
 
-    public AuthenticationController(JwtService jwtService, AuthenticationService authenticationService, UserRepository userRepository, VerificationAccountService verificationAccountService) {
+    public AuthenticationController(JwtService jwtService, AuthenticationService authenticationService, UserRepository userRepository, VerificationAccountServiceImpl verificationAccountService) {
         this.jwtService = jwtService;
         this.authenticationService = authenticationService;
         this.userRepository = userRepository;
@@ -33,12 +34,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterDto registerUserDto) throws CustomException {
+    public ResponseEntity<Void> register(@Valid @RequestBody RegisterDto registerUserDto) throws CustomException {
         var user = userRepository.findByEmail(registerUserDto.email());
         if (user.isEmpty()) {
             User registeredUser = authenticationService.signup(registerUserDto);
-            var response = verificationAccountService.sendVerificationEmail(registeredUser);
-            return ResponseEntity.status(HttpStatus.OK).body(response);
+            verificationAccountService.sendVerificationEmail(registeredUser);
+            return ResponseEntity.status(HttpStatus.OK).build();
         } else {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
@@ -61,21 +62,21 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify-account")
-    public ResponseEntity<String> verifyAccount(@RequestParam(value = "email") String email) throws CustomException {
+    public ResponseEntity<Void> verifyAccount(@RequestParam(value = "email") String email) throws CustomException {
         var user = userRepository.findByEmail(email);
         if (user.isPresent()) {
             if (!user.get().isEnabled()) {
-                var response = verificationAccountService.sendVerificationEmail(user.get());
-                return ResponseEntity.status(HttpStatus.OK).body(response);
+                verificationAccountService.sendVerificationEmail(user.get());
+                return ResponseEntity.status(HttpStatus.OK).build();
             } else {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Account is already authenticated!");
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
             }
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User is not registered");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
-    @GetMapping("/confirm-email")
+    @PostMapping("/confirm-email")
     public ResponseEntity<String> confirmEmail(@RequestParam(value = "token") String token) throws CustomException {
         try {
             var user = verificationAccountService.confirmEmail(token);

@@ -4,16 +4,11 @@ import com.liushukov.courseFlow.oauth2.dto.LoginDto;
 import com.liushukov.courseFlow.oauth2.services.AuthenticationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/auth")
 @RestController
 public class MainController {
-
     private final AuthenticationService authenticationService;
 
     public MainController(AuthenticationService authenticationService) {
@@ -21,15 +16,11 @@ public class MainController {
     }
 
     @PostMapping("/login-oauth2")
-    public ResponseEntity<String> authentication(@AuthenticationPrincipal OAuth2User oAuth2User) {
-        String email = oAuth2User.getAttribute("email");
-        String name = oAuth2User.getAttribute("given_name");
-        String surname = oAuth2User.getAttribute("family_name");
-        Boolean emailVerified = oAuth2User.getAttribute("email_verified");
-
-        LoginDto loginDto = new LoginDto(name, surname, email);
-        return (Boolean.TRUE.equals(emailVerified))
-                ? ResponseEntity.status(HttpStatus.OK).body(authenticationService.authenticate(loginDto))
-                : ResponseEntity.status(HttpStatus.FORBIDDEN).body("Your account isn't valid:(");
+    public ResponseEntity<String> authentication(@RequestBody LoginDto loginDto) {
+        if (loginDto.fullName() == null || loginDto.email() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        String jwt = authenticationService.authenticate(loginDto);
+        return ResponseEntity.status(HttpStatus.OK).body(jwt);
     }
 }

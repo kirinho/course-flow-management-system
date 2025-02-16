@@ -1,7 +1,6 @@
 package com.liushukov.courseFlow.controllers;
 
 import com.liushukov.courseFlow.dtos.RegisterDto;
-import com.liushukov.courseFlow.dtos.UpdateEmailDto;
 import com.liushukov.courseFlow.dtos.UpdateUserDto;
 import com.liushukov.courseFlow.exceptions.CustomException;
 import com.liushukov.courseFlow.models.SortingOrderEnum;
@@ -66,14 +65,6 @@ public class UserController {
     public ResponseEntity<User> updateUser(Authentication authentication, @Valid @RequestBody UpdateUserDto userDto) {
         var user = userService.getUserFromAuthentication(authentication);
         var response = userService.updateUser(user, userDto);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    @PutMapping("/update-email")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> updateUserEmail(Authentication authentication, @Valid @RequestBody UpdateEmailDto emailDto) throws CustomException {
-        var user = userService.getUserFromAuthentication(authentication);
-        var response = userService.updateEmail(user, emailDto);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

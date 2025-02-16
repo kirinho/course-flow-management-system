@@ -32,8 +32,7 @@ public class AdminSeeder implements ApplicationListener<ContextRefreshedEvent> {
 
     private void createSuperAdministrator() {
         RegisterDto userDto = new RegisterDto(
-                "Admin",
-                "Adminov",
+                "Admin Adminov",
                 "admincourseflow@gmail.com",
                 "87654321"
         );
@@ -41,8 +40,7 @@ public class AdminSeeder implements ApplicationListener<ContextRefreshedEvent> {
         var existedAdmin = userRepository.findByEmail(userDto.email());
         if (existedAdmin.isEmpty()) {
             var user = new User()
-                    .setName(userDto.name())
-                    .setSurname(userDto.surname())
+                    .setFullName(userDto.fullName())
                     .setEmail(userDto.email())
                     .setPassword(passwordEncoder.encode(userDto.password()))
                     .setRole(Role.ADMIN)

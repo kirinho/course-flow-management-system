@@ -12,9 +12,12 @@ public class KafkaConfiguration {
 
     @Value("${kafka.verification.topic}")
     private String verificationTopicName;
+    @Value("${spring.kafka.producer.bootstrap-servers}")
+    private String bootstrapServersValue;
+
     @Bean
     public KafkaAdmin kafkaAdmin() {
-        return new KafkaAdmin(Map.of("bootstrap.servers", "localhost:9092"));
+        return new KafkaAdmin(Map.of("bootstrap.servers", bootstrapServersValue));
     }
 
     @Bean

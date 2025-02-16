@@ -21,9 +21,9 @@ services:
     image: 'confluentinc/cp-zookeeper:latest'
     container_name: zookeeper
     ports:
-      - '8088:8088'
+      - '2181:2181'
     environment:
-      ZOOKEEPER_CLIENT_PORT: 8088
+      ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     networks:
       - app-network
@@ -36,9 +36,10 @@ services:
       - '9092:9092'
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:8088
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
       - zookeeper
@@ -54,27 +55,41 @@ services:
     networks:
       - app-network
 
-  # Spring Boot Application (Optional)
-  # spring-app:
-  #   image: your-spring-boot-app-image
-  #   container_name: spring-app
-  #   environment:
-  #     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/courseflow
-  #     SPRING_DATASOURCE_USERNAME: liushukov.kirill
-  #     SPRING_DATASOURCE_PASSWORD: 12345678
-  #     SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-  #     SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
-  #     SPRING_JPA_HIBERNATE_DDL_AUTO: update
-  #     SPRING_REDIS_HOST: redis  # Redis host
-  #     SPRING_REDIS_PORT: 6379   # Redis port
-  #   depends_on:
-  #     - postgres
-  #     - kafka
-  #     - redis
-  #   ports:
-  #     - '8080:8080'  # Expose Spring Boot app on port 8080
-  #   networks:
-  #     - app-network
+#  # Main Service
+#  main:
+#    image: kirinho/main-service:latest
+#    container_name: main
+#    ports:
+#      - '8080:8080'
+#    environment:
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/courseflow?user=liushukov.kirill
+#      SPRING_DATASOURCE_USERNAME: liushukov.kirill
+#      SPRING_DATASOURCE_PASSWORD: 12345678
+#      SPRING_REDIS_HOST: redis
+#      SPRING_REDIS_PORT: 6379
+#    depends_on:
+#      - postgres
+#      - redis
+#    networks:
+#      - app-network
+#
+#  # Email Sender Service
+#  emailSender:
+#    image: kirinho/email-sender-service:latest
+#    container_name: emailSender
+#    ports:
+#      - '8081:8081'
+#    networks:
+#      - app-network
+#
+#  # OAuth2 Service
+#  oauth2:
+#    image: kirinho/oauth2-service:latest
+#    container_name: oauth2
+#    ports:
+#      - '8082:8082'
+#    networks:
+#      - app-network
 
 volumes:
   postgres_data:
@@ -82,3 +97,4 @@ volumes:
 networks:
   app-network:
     driver: bridge
+

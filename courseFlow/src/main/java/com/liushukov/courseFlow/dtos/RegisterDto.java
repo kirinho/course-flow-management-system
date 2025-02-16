@@ -5,12 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record RegisterDto(
-        @Size(min = 2, max = 100, message = "Name should have at least 2 symbols")
-        @NotBlank(message = "Name is mandatory")
-        String name,
-        @Size(min = 2, max = 100, message = "Surname should have at least 2 symbols")
-        @NotBlank(message = "Surname is mandatory")
-        String surname,
+        @Size(min = 2, max = 100, message = "Full Name should have at least 2 symbols")
+        @NotBlank(message = "Full Name is mandatory")
+        String fullName,
         @Email(message = "Email should be valid")
         @NotBlank(message = "Email is mandatory")
         String email,

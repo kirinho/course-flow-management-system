@@ -17,34 +17,23 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "surname")
-    private String surname;
-
-    @Column(name = "name")
-    private String name;
-
+    @Column(name = "fullName")
+    private String fullName;
     @Column(name = "email", unique = true, length = 100, nullable = false)
     private String email;
-
     @Column(name = "password")
     private String password;
-
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private Role role;
-
     @Column(name = "enabled", nullable = false)
     private boolean enabled;
-
     @CreationTimestamp
     @Column(name = "createdAt")
     private Instant createdAt;
-
     @UpdateTimestamp
     @Column(name = "updateAt")
     private Instant updateAt;
-
     @JsonIgnore
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private EmailToken emailToken;
@@ -69,21 +58,13 @@ public class User implements UserDetails {
         return id;
     }
 
-    public String getSurname() {
-        return surname;
+
+    public String getFullName() {
+        return fullName;
     }
 
-    public User setSurname(String surname) {
-        this.surname = surname;
-        return this;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public User setName(String name) {
-        this.name = name;
+    public User setFullName(String fullName) {
+        this.fullName = fullName;
         return this;
     }
 
@@ -140,8 +121,7 @@ public class User implements UserDetails {
     public String toString() {
         return "User{" +
                 "id=" + id +
-                ", surname='" + surname + '\'' +
-                ", name='" + name + '\'' +
+                ", fullName='" + fullName + '\'' +
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
                 ", role=" + role +

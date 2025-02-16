@@ -31,8 +31,7 @@ public class AuthenticationService {
     @Transactional
     public User signup(RegisterDto input) {
         var user = new User()
-                .setName(input.name())
-                .setSurname(input.surname())
+                .setFullName(input.fullName())
                 .setRole(Role.STUDENT)
                 .setEmail(input.email())
                 .setEnabled(false)
@@ -55,8 +54,7 @@ public class AuthenticationService {
     @Transactional
     public User signupOauth2(LoginOauth2Dto input) {
         var user = new User()
-                .setName(input.name())
-                .setSurname(input.surname())
+                .setFullName(input.fullName())
                 .setRole(Role.STUDENT)
                 .setEmail(input.email())
                 .setEnabled(true);
