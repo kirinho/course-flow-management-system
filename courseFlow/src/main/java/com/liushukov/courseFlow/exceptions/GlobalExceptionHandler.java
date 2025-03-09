@@ -2,6 +2,8 @@ package com.liushukov.courseFlow.exceptions;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -87,7 +90,7 @@ public class GlobalExceptionHandler {
             );
             return ResponseEntity.status(customException.getHttpStatus()).body(errorDetails);
         }
-
+        logger.error("internal server error: {}", exception);
         return ResponseEntity.status(HttpStatusCode.valueOf(500))
                 .body(
                         new ErrorDetails(Instant.now(),

@@ -5,10 +5,11 @@ import * as Yup from 'yup';
 import { loginUser, googleLoginUser, loginOAuth2User } from '../api/auth';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
+import google from '../assets/img/google.jpg'
 
 const validationSchema = Yup.object().shape({
-    email: Yup.string().required('Email повинен бути заповнений').email('Invalid email'),
-    password: Yup.string().required('Пароль повинен бути заповнений').min(8).max(100),
+    email: Yup.string().required('Email is mandatory').email('Invalid email'),
+    password: Yup.string().required('Password is mandatory').min(8).max(100),
 });
 
 const Login = () => {
@@ -26,22 +27,22 @@ const Login = () => {
             setTimeout(() => setMessage(null), 3000);
             navigate('/');
         } catch (error) {
-            let errorMessage = 'Виникла помилка. Будь ласка, спробуйте ще раз.';
+            let errorMessage = 'There was an error. Please try again.';
             if (error.response) {
                 switch (error.response.status) {
                     case 401:
-                        errorMessage = 'Неправильна адреса електронної пошти або пароль';
+                        errorMessage = 'Incorrect email address or password';
                         break;
                     case 403:
-                        errorMessage = 'Заборонено. У вас немає необхідних дозволів.';
+                        errorMessage = 'You do not have the required permissions.';
                         break;
                     default:
-                        errorMessage = `Помилка: ${error.response.status} - ${error.response.data?.message || 'Unknown error'}`;
+                        errorMessage = `Error: ${error.response.status} - ${error.response.data?.message || 'Unknown error'}`;
                 }
             } else if (error.request) {
-                errorMessage = 'Відповідь від сервера не отримано.';
+                errorMessage = 'No response was received from the server.';
             } else {
-                errorMessage = 'Запит на помилку встановлення.';
+                errorMessage = 'Request for an installation error.';
             }
             setMessage(errorMessage);
             setTimeout(() => setMessage(null), 3000);
@@ -58,19 +59,19 @@ const Login = () => {
                 setTimeout(() => setMessage(null), 3000);
                 navigate('/');
             } catch (error) {
-                let errorMessage = 'Виникла помилка під час входу в Google.';
+                let errorMessage = 'An error occurred while signing in to Google.';
                 if (error.response) {
                     switch (error.response.status) {
                         case 400:
-                            errorMessage = 'Неправильний запит. Перевірте вхідні дані.';
+                            errorMessage = 'Invalid request. Check the input data.';
                             break;
                         default:
                             errorMessage = `Google Login Error: ${error.response.status} - ${error.response.data?.message || 'Unknown error'}`;
                     }
                 } else if (error.request) {
-                    errorMessage = 'Відповідь від сервера Google не отримано.';
+                    errorMessage = 'No response was received from the server.';
                 } else {
-                    errorMessage = 'Помилка налаштування для входу в Google.';
+                    errorMessage = 'Error setting up Google login.';
                 }
                 setMessage(errorMessage);
                 setTimeout(() => setMessage(null), 3000);
@@ -84,29 +85,37 @@ const Login = () => {
     });
 
     return (
-        <div className="container">
-            <div className="row justify-content-center">
-                <div className="col-md-6">
-                    <form onSubmit={handleSubmit(onSubmit)}>
-                        <h2 className="mb-4">Login</h2>
-                        <div className="mb-3">
-                            <input type="email" className="form-control" placeholder="Email" {...register('email')} />
-                            <p className="text-danger">{errors.email?.message}</p>
+        <div className="d-flex align-items-center justify-content-center vh-100">
+            <div className="container">
+                <div className="row justify-content-center">
+                    <div className="col-md-5">
+                        <div className="p-4 bg-white rounded shadow-sm" style={{ paddingTop: "2rem", paddingBottom: "2rem" }}> {/* Зменшив відступи */}
+                            <h2 className="mb-4 text-center">Login</h2>
+                            <form onSubmit={handleSubmit(onSubmit)}>
+                                <div className="mb-3">
+                                    <input type="email" className="form-control" placeholder="Email" {...register('email')} />
+                                    <p className="text-danger">{errors.email?.message}</p>
+                                </div>
+                                <div className="mb-3">
+                                    <input type="password" className="form-control" placeholder="Password" {...register('password')} />
+                                    <p className="text-danger">{errors.password?.message}</p>
+                                </div>
+                                <button type="submit" className="btn btn-primary w-100 py-2">Login</button>
+                            </form>
+                            {message && (
+                                <div className="mt-3 alert alert-danger">
+                                    {message}
+                                </div>
+                            )}
+                            <button onClick={() => googleLogin()} className="btn btn-light w-100 py-2 d-flex align-items-center justify-content-center border mt-3">
+                                <img src={google}
+                                     alt="Google Logo" 
+                                     className="me-2" 
+                                     style={{ width: "20px", height: "20px" }} /> 
+                                Sign in with Google
+                            </button>
                         </div>
-                        <div className="mb-3">
-                            <input type="password" className="form-control" placeholder="Password" {...register('password')} />
-                            <p className="text-danger">{errors.password?.message}</p>
-                        </div>
-                        <button type="submit" className="btn btn-primary">Login</button>
-                        {message && (
-                            <div className="mt-3 alert alert-danger">
-                                {message}
-                            </div>
-                        )}
-                    </form>
-                    <button onClick={() => googleLogin()} className="btn btn-danger mt-3">
-                            Sign in with Google
-                    </button>
+                    </div>
                 </div>
             </div>
         </div>

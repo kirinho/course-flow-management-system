@@ -12,7 +12,7 @@ const ConfirmEmail = () => {
         const token = searchParams.get('token');
         if (!token) {
             setStatus('error');
-            setMessage('Помилка: Невірний токен.');
+            setMessage('Error: Invalid token.');
             return;
         }
 
@@ -23,29 +23,29 @@ const ConfirmEmail = () => {
                 if (response.status === 200) {
                     localStorage.setItem('token', response.data);
                     setStatus('success');
-                    setMessage('Акаунт успішно підтверджено!');
+                    setMessage('Your account has been successfully verified!');
                     setTimeout(() => navigate('/'), 3000);
                 }
             } catch (error) {
                 setStatus('error');
-                let errorMessage = 'Помилка підтвердження акаунту.';
+                let errorMessage = 'Account verification error.';
 
                 if (error.response) {
                     switch (error.response.status) {
                         case 400:
-                            errorMessage = 'Помилка: Токен не існує.';
+                            errorMessage = 'Error: The token does not exist.';
                             break;
                         case 409:
-                            errorMessage = 'Помилка: Токен вже активовано.';
+                            errorMessage = 'Error: The token has already been activated.';
                             break;
                         case 404:
-                            errorMessage = 'Помилка: Термін дії токена вийшов.';
+                            errorMessage = 'Error: The token has expired.';
                             break;
                         default:
-                            errorMessage = 'Помилка: Щось пішло не так. Спробуйте пізніше.';
+                            errorMessage = 'Error: Something went wrong. Please try again later.';
                     }
                 } else {
-                    errorMessage = 'Помилка з\'єднання. Перевірте інтернет.';
+                    errorMessage = 'No response was received from the server.';
                 }
                 setMessage(errorMessage);
             }
@@ -55,22 +55,24 @@ const ConfirmEmail = () => {
     }, [searchParams, navigate]);
 
     return (
-        <div className="container">
-            <div className="row justify-content-center">
-                <div className="col-md-6">
-                    <div>
-                        <h2 className="mb-4">Підтвердження Email</h2>
-                        {status === 'loading' && <p>Підтвердження акаунту...</p>}
-                        {message && (
-                            <div className="alert alert-info">
-                                {message}
-                            </div>
-                        )}
+        <div className="d-flex align-items-start justify-content-center vh-100">
+            <div className="container">
+                <div className="row justify-content-center">
+                    <div className="col-md-6">
+                        <div className="text-center" style={{ transform: 'translateY(-1%)' }}>
+                            <h2 className="mb-4">Email confirmation</h2>
+                            {status === 'loading' && <p>Account confirmation...</p>}
+                            {message && (
+                                <div className="alert alert-info">
+                                    {message}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    );
+    );    
 };
 
 export default ConfirmEmail;

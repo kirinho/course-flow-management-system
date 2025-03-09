@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 @Table(name = "users")
 @Entity
@@ -129,5 +130,18 @@ public class User implements UserDetails {
                 ", createdAt=" + createdAt +
                 ", updateAt=" + updateAt +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return enabled == user.enabled && Objects.equals(id, user.id) && Objects.equals(fullName, user.fullName) && Objects.equals(email, user.email) && Objects.equals(password, user.password) && role == user.role && Objects.equals(createdAt, user.createdAt) && Objects.equals(updateAt, user.updateAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, fullName, email, password, role, enabled, createdAt, updateAt);
     }
 }

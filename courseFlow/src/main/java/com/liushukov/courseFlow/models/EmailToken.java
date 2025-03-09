@@ -12,24 +12,18 @@ public class EmailToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Column(name = "token", nullable = false, unique = true)
     private String token;
-
     @Column(name = "expirationTime", nullable = false)
     private Instant expirationTime;
-
     @Column(name = "activated", nullable = false)
     private boolean activated;
-
     @CreationTimestamp
     @Column(name = "createdAt")
     private Instant createdAt;
-
     @UpdateTimestamp
     @Column(name = "updatedAt")
     private Instant updateAt;
-
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
