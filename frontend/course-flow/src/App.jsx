@@ -10,7 +10,7 @@ import ConfirmEmail from './pages/ConfirmEmail';
 import Courses from './pages/courses/CoursesAll';
 import CourseDetail from './pages/courses/CourseDetail';
 import ManagerCourses from './pages/courses/manager/ManagerCourses';
-import CourseForm from './pages/courses/manager/CourseForm';
+import ManagerModules from './pages/courses/manager/ManagerModules';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import './assets/css/style.css';
@@ -40,8 +40,7 @@ const App = () => {
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/courses/:id" element={<CourseDetail />} />
                 <Route path="/manager/courses" element={<ManagerCourses />} />
-                <Route path="/manager/courses/add" element={<CourseForm />} />
-                <Route path="/manager/courses/edit/:id" element={<CourseForm />} />
+                <Route path="/manager/courses/:courseId/modules" element={<ManagerModules />} />
             </Routes>
             <Footer />
         </Router>

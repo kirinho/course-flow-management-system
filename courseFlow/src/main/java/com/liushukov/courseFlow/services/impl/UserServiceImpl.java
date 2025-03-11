@@ -2,9 +2,7 @@ package com.liushukov.courseFlow.services.impl;
 
 import com.liushukov.courseFlow.dtos.RegisterDto;
 import com.liushukov.courseFlow.dtos.UpdateUserDto;
-import com.liushukov.courseFlow.exceptions.CustomException;
 import com.liushukov.courseFlow.models.Role;
-import com.liushukov.courseFlow.models.SortingOrderEnum;
 import com.liushukov.courseFlow.models.User;
 import com.liushukov.courseFlow.repositories.UserRepository;
 import com.liushukov.courseFlow.services.UserService;
@@ -52,10 +50,10 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id);
     }
 
-    public List<User> getAllUsers(SortingOrderEnum order, String sortBy, int pageNumber, int pageSize) {
+    public List<User> getAllUsers(String orderBy, String sortBy, int pageNumber, int pageSize) {
         Pageable pageable;
-        switch (order) {
-            case DESC -> pageable = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
+        switch (orderBy) {
+            case "desc" -> pageable = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
             default -> pageable = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy));
         }
         return userRepository.findAll(pageable).getContent();

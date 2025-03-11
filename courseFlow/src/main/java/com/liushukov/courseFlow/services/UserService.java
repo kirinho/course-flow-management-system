@@ -2,8 +2,6 @@ package com.liushukov.courseFlow.services;
 
 import com.liushukov.courseFlow.dtos.RegisterDto;
 import com.liushukov.courseFlow.dtos.UpdateUserDto;
-import com.liushukov.courseFlow.exceptions.CustomException;
-import com.liushukov.courseFlow.models.SortingOrderEnum;
 import com.liushukov.courseFlow.models.User;
 import org.springframework.security.core.Authentication;
 import java.util.List;
@@ -17,7 +15,7 @@ public interface UserService {
 
     Optional<User> getUserById(Long id);
 
-    List<User> getAllUsers(SortingOrderEnum order, String sortBy, int pageNumber, int pageSize);
+    List<User> getAllUsers(String orderBy, String sortBy, int pageNumber, int pageSize);
 
     User saveManager(RegisterDto registerDto);
 

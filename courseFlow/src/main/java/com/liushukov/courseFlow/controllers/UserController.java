@@ -2,8 +2,6 @@ package com.liushukov.courseFlow.controllers;
 
 import com.liushukov.courseFlow.dtos.RegisterDto;
 import com.liushukov.courseFlow.dtos.UpdateUserDto;
-import com.liushukov.courseFlow.exceptions.CustomException;
-import com.liushukov.courseFlow.models.SortingOrderEnum;
 import com.liushukov.courseFlow.models.User;
 import com.liushukov.courseFlow.repositories.UserRepository;
 import com.liushukov.courseFlow.services.UserService;
@@ -43,8 +41,7 @@ public class UserController {
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize
             ) {
-        SortingOrderEnum order = SortingOrderEnum.valueOf(orderBy.toUpperCase());
-        var response = userService.getAllUsers(order, sortBy, pageNumber, pageSize);
+        var response = userService.getAllUsers(orderBy, sortBy, pageNumber, pageSize);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

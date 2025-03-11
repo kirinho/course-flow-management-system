@@ -36,6 +36,9 @@ public class Course {
     @JsonIgnore
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Enrollment> enrollments;
+    @JsonIgnore
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Module> modules;
 
     public Course(String name, String description, byte[] image, String enrollmentCode, User user) {
         this.name = name;

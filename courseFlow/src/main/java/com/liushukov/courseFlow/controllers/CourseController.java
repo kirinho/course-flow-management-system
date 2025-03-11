@@ -5,7 +5,6 @@ import com.liushukov.courseFlow.dtos.CoursePageResponseDto;
 import com.liushukov.courseFlow.dtos.CourseResponseDto;
 import com.liushukov.courseFlow.models.Course;
 import com.liushukov.courseFlow.models.Enrollment;
-import com.liushukov.courseFlow.models.SortingOrderEnum;
 import com.liushukov.courseFlow.models.User;
 import com.liushukov.courseFlow.services.CourseService;
 import com.liushukov.courseFlow.services.EnrollmentService;
@@ -67,75 +66,5 @@ public class CourseController {
     ) {
         List<CourseResponseDto> courses = courseService.getAllCourses(sortBy, orderBy, pageNumber, pageSize);
         return ResponseEntity.status(HttpStatus.OK).body(courses);
-    }
-
-    @GetMapping(path = "/all-manager")
-    @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<List<CourseResponseDto>> all(
-            Authentication authentication,
-            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
-            @RequestParam(value = "pageSize", defaultValue = "12", required = false) Integer pageSize
-    ) {
-        User user = userService.getUserFromAuthentication(authentication);
-        List<CourseResponseDto> courses = courseService.getCoursesByManager(user.getId(), pageNumber, pageSize);
-        return ResponseEntity.status(HttpStatus.OK).body(courses);
-    }
-
-    @PostMapping(path = "/course/create", consumes = "multipart/form-data")
-    @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<Course> createCourse(
-            Authentication authentication,
-            @RequestPart("name") String courseName,
-            @RequestPart("description") String courseDescription,
-            @RequestPart("image") MultipartFile image) throws IOException
-    {
-        User user = userService.getUserFromAuthentication(authentication);
-        CourseDto courseDto = new CourseDto(courseName, courseDescription);
-        Course course = courseService.createCourse(user, courseDto, image);
-        return ResponseEntity.status(HttpStatus.CREATED).body(course);
-    }
-
-    @PatchMapping(path = "/course/update/{courseId}", consumes = "multipart/form-data")
-    @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<Course> updateCourse(
-            Authentication authentication,
-            @PathVariable(value = "courseId") Long courseId,
-            @RequestPart(value = "name", required = false) String courseName,
-            @RequestPart(value = "description", required = false) String courseDescription,
-            @RequestPart(value = "image", required = false) MultipartFile image) throws IOException
-
-    {
-        User user = userService.getUserFromAuthentication(authentication);
-        Optional<Course> course = courseService.getCourseById(courseId);
-        if (course.isPresent()) {
-            if (course.get().getUser().equals(user)) {
-                CourseDto courseDto = new CourseDto(courseName, courseDescription);
-                return ResponseEntity.status(HttpStatus.OK)
-                        .body(courseService.updateCourse(course.get(), courseDto, image));
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-    }
-
-    @DeleteMapping(path = "/course/delete/{courseId}")
-    @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<Void> deleteCourse(Authentication authentication,
-                                             @PathVariable(value = "courseId") Long courseId
-    ) {
-        User user = userService.getUserFromAuthentication(authentication);
-        Optional<Course> course = courseService.getCourseById(courseId);
-        if (course.isPresent()) {
-            if (course.get().getUser().equals(user)) {
-                courseService.deleteCourse(course.get());
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
     }
 }

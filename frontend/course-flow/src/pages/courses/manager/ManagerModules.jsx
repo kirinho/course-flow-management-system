@@ -1,0 +1,132 @@
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
+import { Button, Modal, Form, Alert } from "react-bootstrap";
+import { useForm } from "react-hook-form";
+
+const ManagerModules = () => {
+    const { courseId } = useParams();
+    const [modules, setModules] = useState([]);
+    const [error, setError] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showModuleModal, setShowModuleModal] = useState(false);
+    const [moduleToDelete, setModuleToDelete] = useState(null);
+    const [editingModule, setEditingModule] = useState(null);
+    const navigate = useNavigate();
+    const token = localStorage.getItem("token");
+    const { register, handleSubmit, setValue, formState: { errors }, reset } = useForm();
+
+    useEffect(() => {
+        if (!token) return;
+        axios.get(`http://localhost:8080/manager/modules/${courseId}/all`, { headers: { Authorization: `Bearer ${token}` } })
+            .then(response => setModules(response.data))
+            .catch(() => setError("Error fetching modules."));
+    }, [token, courseId]);
+
+    const handleDelete = async () => {
+        if (!moduleToDelete) return;
+        try {
+            await axios.delete(`http://localhost:8080/manager/modules/delete/${moduleToDelete.id}`, { headers: { Authorization: `Bearer ${token}` } });
+            setModules(modules.filter(module => module.id !== moduleToDelete.id));
+            setShowDeleteModal(false);
+        } catch {
+            setError("Failed to delete module.");
+        }
+    };
+
+    const handleOpenModuleModal = (module = null) => {
+        reset();
+        setEditingModule(module);
+        if (module) {
+            setValue("name", module.name);
+            setValue("description", module.description);
+            setValue("position", module.position);
+        }
+        setShowModuleModal(true);
+    };
+
+    const onSubmit = async (data) => {
+        try {
+            const url = editingModule 
+                ? `http://localhost:8080/manager/modules/${courseId}/update/${editingModule.id}` 
+                : `http://localhost:8080/manager/modules/${courseId}/create`;
+            
+            const method = editingModule ? "PATCH" : "POST";
+            
+            await axios({
+                method,
+                url,
+                data,
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
+            });
+            setShowModuleModal(false);
+            navigate(0);
+        } catch {
+            setError("Failed to submit module.");
+        }
+    };
+
+    if (!token) {
+        return <h2>You need to be authenticated to view the modules.</h2>;
+    }
+
+    return (
+        <div className="container mt-5">
+            <h2 className="mb-4">Modules for Course {courseId}</h2>
+            {error && <Alert variant="danger">{error}</Alert>}
+            <ul className="list-group">
+                {modules.map(module => (
+                    <li key={module.id} className="list-group-item d-flex justify-content-between align-items-center">
+                        {module.name}
+                        <div>
+                            <Button variant="secondary" onClick={() => handleOpenModuleModal(module)}>Edit</Button>
+                            <Button variant="danger" className="ms-2" onClick={() => { setModuleToDelete(module); setShowDeleteModal(true); }}>Delete</Button>
+                        </div>
+                    </li>
+                ))}
+            </ul>
+            <Button className="mt-4" onClick={() => handleOpenModuleModal()}>Add New Module</Button>
+
+            <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Confirm Delete</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    Are you sure you want to delete {moduleToDelete?.name}?
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+                    <Button variant="danger" onClick={handleDelete}>Delete</Button>
+                </Modal.Footer>
+            </Modal>
+
+            <Modal show={showModuleModal} onHide={() => setShowModuleModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>{editingModule ? "Edit Module" : "Create Module"}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form onSubmit={handleSubmit(onSubmit)}>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Module Name</Form.Label>
+                            <Form.Control type="text" {...register("name", { required: true })} />
+                            {errors.name && <p className="text-danger">Module name is required</p>}
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Description</Form.Label>
+                            <Form.Control as="textarea" rows={4} {...register("description", { required: true })} />
+                            {errors.description && <p className="text-danger">Description is required</p>}
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Label>Position</Form.Label>
+                            <Form.Control type="number" {...register("position", { required: true })} />
+                            {errors.position && <p className="text-danger">Position is required</p>}
+                        </Form.Group>
+                        <Button type="submit" className="w-100">{editingModule ? "Update" : "Create"} Module</Button>
+                    </Form>
+                </Modal.Body>
+            </Modal>
+        </div>
+    );
+};
+
+export default ManagerModules;
