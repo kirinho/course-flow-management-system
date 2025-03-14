@@ -45,14 +45,14 @@ public class ModuleManagerController {
 
     @PostMapping(path = "/{courseId}/create")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ModuleResponseDto> createModule(
+    public ResponseEntity<Void> createModule(
             @PathVariable(value = "courseId") Long courseId,
             @Valid @RequestBody ModuleCreateDto moduleCreateDto
     ) {
         Optional<Course> course = courseService.getCourseById(courseId);
         if (course.isPresent()) {
-            ModuleResponseDto moduleResponseDto = moduleService.createModule(moduleCreateDto, course.get());
-            return ResponseEntity.status(HttpStatus.CREATED).body(moduleResponseDto);
+            moduleService.createModule(moduleCreateDto, course.get());
+            return ResponseEntity.status(HttpStatus.CREATED).build();
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -60,7 +60,7 @@ public class ModuleManagerController {
 
     @PatchMapping(path = "/{courseId}/update/{moduleId}")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ModuleResponseDto> updateModule(
+    public ResponseEntity<Void> updateModule(
             @PathVariable(value = "courseId") Long courseId,
             @PathVariable(value = "moduleId") Long moduleId,
             @Valid @RequestBody ModuleUpdateDto moduleUpdateDto
@@ -68,8 +68,8 @@ public class ModuleManagerController {
         Optional<Course> course = courseService.getCourseById(courseId);
         Optional<Module> module = moduleService.getModuleById(moduleId);
         if (course.isPresent() && module.isPresent()) {
-            ModuleResponseDto moduleResponseDto = moduleService.updateModule(module.get(), moduleUpdateDto);
-            return ResponseEntity.status(HttpStatus.OK).body(moduleResponseDto);
+            moduleService.updateModule(module.get(), moduleUpdateDto);
+            return ResponseEntity.status(HttpStatus.OK).build();
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

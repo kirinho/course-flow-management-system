@@ -45,18 +45,17 @@ public class ModuleServiceImpl implements ModuleService {
     }
 
     @Override
-    public ModuleResponseDto createModule(ModuleCreateDto moduleCreateDto, Course course) {
+    public void createModule(ModuleCreateDto moduleCreateDto, Course course) {
         Module module = new Module(
                 moduleCreateDto.name(),
                 moduleCreateDto.description(),
                 moduleCreateDto.position(), course
         );
         moduleRepository.save(module);
-        return toDto(module);
     }
 
     @Override
-    public ModuleResponseDto updateModule(Module module, ModuleUpdateDto moduleUpdateDto) {
+    public void updateModule(Module module, ModuleUpdateDto moduleUpdateDto) {
         if (moduleUpdateDto.name() != null) {
             module.setName(moduleUpdateDto.name());
         }
@@ -65,7 +64,6 @@ public class ModuleServiceImpl implements ModuleService {
         }
         module.setPosition(moduleUpdateDto.position());
         moduleRepository.save(module);
-        return toDto(module);
     }
 
     @Override

@@ -74,7 +74,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public Course createCourse(User user, CourseDto courseDto, MultipartFile image) throws IOException {
+    public void createCourse(User user, CourseDto courseDto, MultipartFile image) throws IOException {
         Course course = new Course(
                 courseDto.name(),
                 courseDto.description(),
@@ -82,11 +82,11 @@ public class CourseServiceImpl implements CourseService {
                 courseCodeGenerator.generateCode(),
                 user
         );
-        return courseRepository.save(course);
+        courseRepository.save(course);
     }
 
     @Override
-    public Course updateCourse(Course course, CourseDto courseDto, MultipartFile image) throws IOException {
+    public void updateCourse(Course course, CourseDto courseDto, MultipartFile image) throws IOException {
         if (courseDto.name() != null) {
             course.setName(courseDto.name());
         }
@@ -96,7 +96,7 @@ public class CourseServiceImpl implements CourseService {
         if (image != null) {
             course.setImage(image.getBytes());
         }
-        return courseRepository.save(course);
+        courseRepository.save(course);
     }
 
     @Override

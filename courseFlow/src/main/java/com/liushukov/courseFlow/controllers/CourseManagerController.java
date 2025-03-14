@@ -42,7 +42,7 @@ public class CourseManagerController {
 
     @PostMapping(path = "/course/create", consumes = "multipart/form-data")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<Course> createCourse(
+    public ResponseEntity<Void> createCourse(
             Authentication authentication,
             @RequestPart("name") String courseName,
             @RequestPart("description") String courseDescription,
@@ -50,13 +50,13 @@ public class CourseManagerController {
     {
         User user = userService.getUserFromAuthentication(authentication);
         CourseDto courseDto = new CourseDto(courseName, courseDescription);
-        Course course = courseService.createCourse(user, courseDto, image);
-        return ResponseEntity.status(HttpStatus.CREATED).body(course);
+        courseService.createCourse(user, courseDto, image);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PatchMapping(path = "/course/update/{courseId}", consumes = "multipart/form-data")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<Course> updateCourse(
+    public ResponseEntity<Void> updateCourse(
             Authentication authentication,
             @PathVariable(value = "courseId") Long courseId,
             @RequestPart(value = "name", required = false) String courseName,
@@ -69,8 +69,8 @@ public class CourseManagerController {
         if (course.isPresent()) {
             if (course.get().getUser().equals(user)) {
                 CourseDto courseDto = new CourseDto(courseName, courseDescription);
-                return ResponseEntity.status(HttpStatus.OK)
-                        .body(courseService.updateCourse(course.get(), courseDto, image));
+                courseService.updateCourse(course.get(), courseDto, image);
+                return ResponseEntity.status(HttpStatus.OK).build();
             } else {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }

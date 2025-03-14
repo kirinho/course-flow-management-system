@@ -5,15 +5,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
 public interface ModuleRepository extends JpaRepository<Module, Long> {
-    @Query(value = "SELECT * FROM modules WHERE id = ?1", nativeQuery = true)
-    Optional<Module> findModuleById(long moduleId);
+    @Query("SELECT m FROM Module m WHERE m.id = :moduleId")
+    Optional<Module> findModuleById(@Param("moduleId") long moduleId);
 
-    @Query(value = "SELECT * FROM modules WHERE course_id = ?1 ORDER BY position", nativeQuery = true)
-    Page<Module> findAllModulesByCourse(long courseId, Pageable pageable);
+    @Query("SELECT m FROM Module m WHERE m.course.id = :courseId ORDER BY m.position")
+    Page<Module> findAllModulesByCourse(@Param("courseId") long courseId, Pageable pageable);
 }

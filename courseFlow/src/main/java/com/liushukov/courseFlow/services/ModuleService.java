@@ -16,9 +16,9 @@ public interface ModuleService {
 
     List<ModuleResponseDto> getAllModulesByCourse(Course course, int pageNumber, int pageSize);
 
-    ModuleResponseDto createModule(ModuleCreateDto moduleCreateDto, Course course);
+    void createModule(ModuleCreateDto moduleCreateDto, Course course);
 
-    ModuleResponseDto updateModule(Module module, ModuleUpdateDto moduleUpdateDto);
+    void updateModule(Module module, ModuleUpdateDto moduleUpdateDto);
 
     void deleteModule(Module module);
 }

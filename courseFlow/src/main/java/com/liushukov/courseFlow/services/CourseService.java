@@ -22,9 +22,9 @@ public interface CourseService {
 
     List<CourseResponseDto> getCoursesByManager(long userId, int pageNumber, int pageSize);
 
-    Course createCourse(User user, CourseDto courseDto, MultipartFile image) throws IOException;
+    void createCourse(User user, CourseDto courseDto, MultipartFile image) throws IOException;
 
-    Course updateCourse(Course course, CourseDto courseDto, MultipartFile image) throws IOException;
+    void updateCourse(Course course, CourseDto courseDto, MultipartFile image) throws IOException;
 
     void deleteCourse(Course course);
 }

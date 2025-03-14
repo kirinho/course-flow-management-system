@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { Button, Modal, Form, Alert } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 
@@ -77,7 +77,9 @@ const ManagerModules = () => {
             <ul className="list-group">
                 {modules.map(module => (
                     <li key={module.id} className="list-group-item d-flex justify-content-between align-items-center">
-                        {module.name}
+                        <Link to={`/manager/modules/${module.id}/overview`} className="text-decoration-none">
+                            {module.name}
+                        </Link>
                         <div>
                             <Button variant="secondary" onClick={() => handleOpenModuleModal(module)}>Edit</Button>
                             <Button variant="danger" className="ms-2" onClick={() => { setModuleToDelete(module); setShowDeleteModal(true); }}>Delete</Button>

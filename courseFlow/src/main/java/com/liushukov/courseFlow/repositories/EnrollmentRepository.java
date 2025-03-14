@@ -3,12 +3,13 @@ package com.liushukov.courseFlow.repositories;
 import com.liushukov.courseFlow.models.Enrollment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
-    @Query(value = "SELECT * FROM enrollments WHERE user_id = ?1 AND course_id = ?2", nativeQuery = true)
-    Optional<Enrollment> findEnrollmentByUserAndCourse(Long userId, Long courseId);
+    @Query("SELECT e FROM Enrollment e WHERE e.user.id = :userId AND e.course.id = :courseId")
+    Optional<Enrollment> findEnrollmentByUserAndCourse(@Param("userId") Long userId, @Param("courseId") Long courseId);
 }
