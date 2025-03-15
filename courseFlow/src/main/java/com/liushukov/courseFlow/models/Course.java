@@ -24,14 +24,14 @@ public class Course {
     private Instant updatedAt;
     @Column(name = "name", nullable = false, length = 100)
     private String name;
-    @Column(columnDefinition = "TEXT", name = "description")
+    @Column(columnDefinition = "TEXT", name = "description", nullable = false)
     private String description;
-    @Column(columnDefinition = "BYTEA")
+    @Column(columnDefinition = "BYTEA", nullable = false)
     private byte[] image;
     @Column(name = "enrollment_code", unique = true, nullable = false, length = 10)
     private String enrollmentCode;
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
     @JsonIgnore
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)

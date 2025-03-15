@@ -2,6 +2,7 @@ package com.liushukov.courseFlow.services.impl;
 
 import com.liushukov.courseFlow.configs.CourseCodeGenerator;
 import com.liushukov.courseFlow.dtos.CourseDto;
+import com.liushukov.courseFlow.dtos.CourseManagerResponseDto;
 import com.liushukov.courseFlow.dtos.CoursePageResponseDto;
 import com.liushukov.courseFlow.dtos.CourseResponseDto;
 import com.liushukov.courseFlow.models.Course;
@@ -34,12 +35,23 @@ public class CourseServiceImpl implements CourseService {
         return courseRepository.findCourseById(id);
     }
 
-    @Override
-    public CourseResponseDto toCourseResponseDto(Course course) {
+
+    private CourseResponseDto toCourseResponseDto(Course course) {
         return new CourseResponseDto(
                 course.getId(),
                 course.getName(),
                 course.getDescription(),
+                Base64.getEncoder().encodeToString(course.getImage()),
+                course.getUser()
+        );
+    }
+
+    private CourseManagerResponseDto toCourseManagerResponseDto(Course course) {
+        return new CourseManagerResponseDto(
+                course.getId(),
+                course.getName(),
+                course.getDescription(),
+                course.getEnrollmentCode(),
                 Base64.getEncoder().encodeToString(course.getImage()),
                 course.getUser()
         );
@@ -68,9 +80,9 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseResponseDto> getCoursesByManager(long userId, int pageNumber, int pageSize) {
+    public List<CourseManagerResponseDto> getCoursesByManager(long userId, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        return courseRepository.findCoursesByManager(userId, pageable).getContent().stream().map(this::toCourseResponseDto).toList();
+        return courseRepository.findCoursesByManager(userId, pageable).getContent().stream().map(this::toCourseManagerResponseDto).toList();
     }
 
     @Override

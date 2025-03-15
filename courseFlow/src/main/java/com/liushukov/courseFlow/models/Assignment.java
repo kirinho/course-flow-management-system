@@ -8,10 +8,10 @@ import java.util.Date;
 @Entity
 @DiscriminatorValue("ASSIGNMENT")
 public class Assignment extends BaseLessonAssignment {
-    @Column(name = "due_date", columnDefinition = "DATE")
+    @Column(name = "due_date", columnDefinition = "DATE", nullable = false)
     @Temporal(TemporalType.DATE)
     private Date dueDate;
-    @Column(name = "max_score")
+    @Column(name = "max_score", nullable = false)
     private Integer maxScore;
 
     public Assignment() {}

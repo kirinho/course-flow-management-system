@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -21,10 +22,17 @@ public interface BaseLessonAssignmentRepository extends JpaRepository<BaseLesson
     Optional<Assignment> findAssignmentById(@Param("blaId") long blaId);
 
     @Query("""
-            SELECT bla FROM BaseLessonAssignment bla
-            LEFT JOIN FETCH bla.attachments
-            WHERE bla.module.id = :moduleId
-            ORDER BY bla.position
-            """)
-    Page<BaseLessonAssignment> findAllByModuleId(@Param("moduleId") long moduleId, Pageable pageable);
+        SELECT bla.id FROM BaseLessonAssignment bla
+        WHERE bla.module.id = :moduleId
+        ORDER BY bla.position
+        """)
+    Page<Long> findAllIdsByModuleId(@Param("moduleId") long moduleId, Pageable pageable);
+
+    @Query("""
+        SELECT bla FROM BaseLessonAssignment bla
+        LEFT JOIN FETCH bla.attachments
+        WHERE bla.id IN :ids
+        ORDER BY bla.position
+        """)
+    List<BaseLessonAssignment> findAllByIds(@Param("ids") List<Long> ids);
 }

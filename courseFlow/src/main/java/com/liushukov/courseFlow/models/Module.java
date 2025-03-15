@@ -1,10 +1,12 @@
 package com.liushukov.courseFlow.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Table(name = "modules")
@@ -18,15 +20,18 @@ public class Module {
     @UpdateTimestamp
     @Column(columnDefinition = "TIMESTAMP", name = "updated_at")
     private Instant updatedAt;
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
-    @Column(columnDefinition = "TEXT", name = "description")
+    @Column(columnDefinition = "TEXT", name = "description", nullable = false)
     private String description;
-    @Column(name = "position")
+    @Column(name = "position", nullable = false)
     private Integer position;
     @ManyToOne
-    @JoinColumn(name = "course_id")
+    @JoinColumn(name = "course_id", nullable = false)
     private Course course;
+    @JsonIgnore
+    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BaseLessonAssignment> lessonAssignments;
 
     public Module(String name, String description, Integer position, Course course) {
         this.name = name;
@@ -79,5 +84,9 @@ public class Module {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public List<BaseLessonAssignment> getLessonAssignments() {
+        return lessonAssignments;
     }
 }

@@ -13,7 +13,7 @@ public class Attachment {
     @Enumerated(EnumType.STRING)
     @Column(name = "file_type", nullable = false)
     private AttachmentExtension fileType;
-    @Column(columnDefinition = "BYTEA", name = "file_data")
+    @Column(columnDefinition = "BYTEA", name = "file_data", nullable = false)
     private byte[] fileData;
     @ManyToOne
     @JoinColumn(name = "lesson_assignment_id")

@@ -15,10 +15,10 @@ public class Enrollment {
     @Column(columnDefinition = "TIMESTAMP", name = "created_at")
     private Instant createdAt;
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
     @ManyToOne
-    @JoinColumn(name = "course_id")
+    @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
     public Enrollment() {}

@@ -1,6 +1,7 @@
 package com.liushukov.courseFlow.controllers;
 
 import com.liushukov.courseFlow.dtos.CourseDto;
+import com.liushukov.courseFlow.dtos.CourseManagerResponseDto;
 import com.liushukov.courseFlow.dtos.CourseResponseDto;
 import com.liushukov.courseFlow.models.Course;
 import com.liushukov.courseFlow.models.User;
@@ -30,13 +31,13 @@ public class CourseManagerController {
 
     @GetMapping(path = "/all")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<List<CourseResponseDto>> all(
+    public ResponseEntity<List<CourseManagerResponseDto>> all(
             Authentication authentication,
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
             @RequestParam(value = "pageSize", defaultValue = "12", required = false) Integer pageSize
     ) {
         User user = userService.getUserFromAuthentication(authentication);
-        List<CourseResponseDto> courses = courseService.getCoursesByManager(user.getId(), pageNumber, pageSize);
+        List<CourseManagerResponseDto> courses = courseService.getCoursesByManager(user.getId(), pageNumber, pageSize);
         return ResponseEntity.status(HttpStatus.OK).body(courses);
     }
 

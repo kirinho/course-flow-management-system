@@ -23,7 +23,11 @@ public class LessonAssignmentService {
 
     public List<LessonAssignmentResponseDto> getAllByModule(Module module, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        List<BaseLessonAssignment> assignments = repository.findAllByModuleId(module.getId(), pageable).getContent();
+        List<Long> ids = repository.findAllIdsByModuleId(module.getId(), pageable).getContent();
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        List<BaseLessonAssignment> assignments = repository.findAllByIds(ids);
         return assignments.stream().map(this::mapToDto).toList();
     }
 

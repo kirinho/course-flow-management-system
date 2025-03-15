@@ -46,7 +46,6 @@ public class LessonServiceImpl implements LessonService {
                 lessonCreateDto.content()
         );
         Lesson savedLesson = repository.save(lesson);
-        System.out.println(files.length);
         if (files != null && files.length > 0) {
             saveAttachments(savedLesson, files);
         }

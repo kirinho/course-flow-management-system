@@ -109,6 +109,7 @@ const ManagerCourses = () => {
                             </Link>
                             <div className="card-body">
                                 <h5 className="card-title">{course.name}</h5>
+                                <h6 className="card-title">Enrollment code: {course.enrollmentCode}</h6>
                                 <Dropdown>
                                     <Dropdown.Toggle variant="secondary" id="dropdown-basic">⋮</Dropdown.Toggle>
                                     <Dropdown.Menu>

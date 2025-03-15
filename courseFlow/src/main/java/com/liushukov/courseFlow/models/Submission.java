@@ -16,10 +16,10 @@ public class Submission {
     @Column(columnDefinition = "TIMESTAMP", name = "submitted_at")
     private Instant submittedAt;
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User student;
     @ManyToOne
-    @JoinColumn(name = "assignment_id")
+    @JoinColumn(name = "assignment_id", nullable = false)
     private Assignment assignment;
     @Column(columnDefinition = "TEXT", name = "text_submission")
     private String textSubmission;

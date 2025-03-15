@@ -7,7 +7,7 @@ import java.util.List;
 @Entity
 @DiscriminatorValue("LESSON")
 public class Lesson extends BaseLessonAssignment {
-    @Column(columnDefinition = "TEXT", name = "content")
+    @Column(columnDefinition = "TEXT", name = "content", nullable = false)
     private String content;
 
     public Lesson() {}
