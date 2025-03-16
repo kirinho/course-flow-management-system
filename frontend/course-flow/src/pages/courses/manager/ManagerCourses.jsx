@@ -93,6 +93,9 @@ const ManagerCourses = () => {
 
     return (
         <div className="container mt-5">
+            <div style={{ display: "flex", alignItems: "center" }}>
+                Courses /
+            </div>
             <h2 className="mb-4">My Courses</h2>
             {error && <div className="alert alert-danger">{error}</div>}
             <div className="row">

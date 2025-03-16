@@ -9,6 +9,7 @@ public record CourseResponseDto(
         String name,
         String description,
         String imageBase64,
-        User user
+        String authorName,
+        String authorEmail
 ) {
 }

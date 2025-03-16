@@ -703,6 +703,37 @@ pre code {
   max-width: 100%;
 }
 
+.modules-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Відстань між модулями */
+}
+
+.module-card {
+  width: 100%;
+}
+
+.lesson-content {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.attachments ul {
+  list-style-type: none;
+}
+
+.attachments li {
+  margin-bottom: 15px;
+}
+
+.attachments .card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .col-1 {
   flex: 0 0 8.33333%;
   max-width: 8.33333%;

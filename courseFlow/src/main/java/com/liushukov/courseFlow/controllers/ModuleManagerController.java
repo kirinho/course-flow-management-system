@@ -27,6 +27,15 @@ public class ModuleManagerController {
         this.courseService = courseService;
     }
 
+    @GetMapping(path = "/module/{moduleId}")
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<String> moduleName(@PathVariable(value = "moduleId") Long moduleId) {
+        Optional<Module> module = moduleService.getModuleById(moduleId);
+        return module
+                .map(value -> ResponseEntity.status(HttpStatus.OK).body(value.getName()))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
     @GetMapping(path = "/{courseId}/all")
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<List<ModuleResponseDto>> allForManager(

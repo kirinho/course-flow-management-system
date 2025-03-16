@@ -1,6 +1,8 @@
 package com.liushukov.courseFlow.services.impl;
 
+import com.liushukov.courseFlow.dtos.AttachmentResponseDto;
 import com.liushukov.courseFlow.dtos.LessonCreateDto;
+import com.liushukov.courseFlow.dtos.LessonResponseDto;
 import com.liushukov.courseFlow.dtos.LessonUpdateDto;
 import com.liushukov.courseFlow.models.Attachment;
 import com.liushukov.courseFlow.models.AttachmentExtension;
@@ -33,6 +35,22 @@ public class LessonServiceImpl implements LessonService {
     @Override
     public Optional<Lesson> getLessonById(long id) {
         return repository.findLessonById(id);
+    }
+
+    @Override
+    public LessonResponseDto getLessonOverview(Lesson lesson) {
+        Lesson lessonWithAttachments = repository.findLessonWithAttachments(lesson.getId());
+        return new LessonResponseDto(
+                lessonWithAttachments.getId(),
+                lessonWithAttachments.getTitle(),
+                lesson.getDescription(),
+                lesson.getContent(),
+                lessonWithAttachments.getAttachments().stream().map(attachment -> new AttachmentResponseDto(
+                        attachment.getId(),
+                        attachment.getFileName(),
+                        attachment.getFileType().name()
+                )).toList()
+        );
     }
 
     @Transactional

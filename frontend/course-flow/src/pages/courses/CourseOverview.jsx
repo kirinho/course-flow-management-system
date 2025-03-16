@@ -1,0 +1,99 @@
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Link, useParams } from "react-router-dom";
+import { Card } from "react-bootstrap";
+import { FaBook, FaTasks } from "react-icons/fa";
+
+const CourseOverview = () => {
+  const { id } = useParams();
+  const [course, setCourse] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCourseOverview = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(`http://localhost:8080/courses/${id}/overview`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCourse(response.data);
+      } catch (error) {
+        console.error("Error fetching course overview", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourseOverview();
+  }, [id]);
+
+  if (isLoading) return <div className="text-center text-lg">Loading...</div>;
+  if (!course) return <div className="text-center text-danger">Course not found.</div>;
+
+  return (
+    <div className="container py-5">
+      <div className="text-center mb-5">
+        {course.image ? (
+          <img
+            className="rounded img-fluid shadow-lg"
+            src={`data:image/jpeg;base64,${course.image}`}
+            alt={course.name}
+            style={{ maxWidth: "600px" }}
+          />
+        ) : (
+          <div className="bg-secondary text-white py-5 rounded-lg">
+            No Image Available
+          </div>
+        )}
+        <h1 className="mt-4">{course.name}</h1>
+        <p className="text-muted">{course.description}</p>
+      </div>
+
+      <div className="modules-container">
+        {course.modules.length > 0 ? (
+          course.modules.map((module) => (
+            <div key={module.id} className="module-card">
+              <Card className="bg-light border shadow-sm p-4 rounded-lg">
+                <h3 className="text-dark">{module.name}</h3>
+                <p className="text-muted">{module.description}</p>
+
+                <ul className="list-unstyled">
+                  {module.lessonAssignments.map((item) => (
+                    <li
+                      key={item.id}
+                      className={`d-flex align-items-center gap-3 p-3 rounded mb-2 ${
+                        item.type === "LESSON" ? "bg-primary text-white" : "bg-warning text-dark"
+                      }`}
+                    >
+                      {item.type === "LESSON" ? (
+                        <FaBook className="text-white" />
+                      ) : (
+                        <FaTasks className="text-dark" />
+                      )}
+                    <span>
+                      {item.type === "LESSON" ? (
+                        <Link
+                          to={`/lesson/${item.id}/overview`}
+                          className="text-decoration-none text-white"
+                        >
+                          {item.title}
+                        </Link>
+                      ) : (
+                        <span>{item.title}</span>
+                      )}
+                    </span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            </div>
+          ))
+        ) : (
+          <p className="text-center text-muted">No modules available.</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default CourseOverview;

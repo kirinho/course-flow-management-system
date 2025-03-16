@@ -1,13 +1,12 @@
 package com.liushukov.courseFlow.services.impl;
 
 import com.liushukov.courseFlow.configs.CourseCodeGenerator;
-import com.liushukov.courseFlow.dtos.CourseDto;
-import com.liushukov.courseFlow.dtos.CourseManagerResponseDto;
-import com.liushukov.courseFlow.dtos.CoursePageResponseDto;
-import com.liushukov.courseFlow.dtos.CourseResponseDto;
+import com.liushukov.courseFlow.dtos.*;
 import com.liushukov.courseFlow.models.Course;
+import com.liushukov.courseFlow.models.Module;
 import com.liushukov.courseFlow.models.User;
 import com.liushukov.courseFlow.repositories.CourseRepository;
+import com.liushukov.courseFlow.repositories.ModuleRepository;
 import com.liushukov.courseFlow.services.CourseService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,17 +16,21 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final CourseCodeGenerator courseCodeGenerator;
+    private final ModuleRepository moduleRepository;
 
-    public CourseServiceImpl(CourseRepository courseRepository, CourseCodeGenerator courseCodeGenerator) {
+    public CourseServiceImpl(CourseRepository courseRepository, CourseCodeGenerator courseCodeGenerator, ModuleRepository moduleRepository) {
         this.courseRepository = courseRepository;
         this.courseCodeGenerator = courseCodeGenerator;
+        this.moduleRepository = moduleRepository;
     }
 
     @Override
@@ -42,7 +45,8 @@ public class CourseServiceImpl implements CourseService {
                 course.getName(),
                 course.getDescription(),
                 Base64.getEncoder().encodeToString(course.getImage()),
-                course.getUser()
+                course.getUser().getFullName(),
+                course.getUser().getEmail()
         );
     }
 
@@ -55,6 +59,42 @@ public class CourseServiceImpl implements CourseService {
                 Base64.getEncoder().encodeToString(course.getImage()),
                 course.getUser()
         );
+    }
+
+    @Override
+    public CourseOverviewDto getAllModulesWithLessonsAndAssignments(Course course, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        List<Long> ids = moduleRepository.findModulesIdsByCourse(course.getId(), pageable).getContent();
+
+        List<Module> modules = moduleRepository.findModulesWithLessonsAndAssignments(ids);
+        List<ModulePageResponseDto> modulePageResponseDtos = modules.stream().map(
+                module -> new ModulePageResponseDto(
+                        module.getId(),
+                        module.getName(),
+                        module.getDescription(),
+                        module.getLessonAssignments()
+                                .stream()
+                                .map(baseLessonAssignment -> new LessonAssignmentPageResponseDto(
+                                        baseLessonAssignment.getId(),
+                                        baseLessonAssignment.getTitle(),
+                                        baseLessonAssignment.getType()
+                                )).collect(Collectors.toList())
+                )
+        ).toList();
+
+        return (!modulePageResponseDtos.isEmpty())
+                ? new CourseOverviewDto(
+                        course.getId(),
+                        course.getName(),
+                        course.getDescription(),
+                        Base64.getEncoder().encodeToString(course.getImage()),
+                        modulePageResponseDtos)
+                : new CourseOverviewDto(
+                        course.getId(),
+                        course.getName(),
+                        course.getDescription(),
+                        Base64.getEncoder().encodeToString(course.getImage()),
+                        Collections.emptyList());
     }
 
     @Override

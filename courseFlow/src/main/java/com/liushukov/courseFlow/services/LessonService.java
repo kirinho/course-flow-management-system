@@ -1,6 +1,7 @@
 package com.liushukov.courseFlow.services;
 
 import com.liushukov.courseFlow.dtos.LessonCreateDto;
+import com.liushukov.courseFlow.dtos.LessonResponseDto;
 import com.liushukov.courseFlow.dtos.LessonUpdateDto;
 import com.liushukov.courseFlow.models.Lesson;
 import com.liushukov.courseFlow.models.Module;
@@ -11,6 +12,8 @@ import java.util.Optional;
 
 public interface LessonService {
     Optional<Lesson> getLessonById(long id);
+
+    LessonResponseDto getLessonOverview(Lesson lesson);
 
     void createLesson(LessonCreateDto lessonCreateDto, Module module, MultipartFile[] files);
 

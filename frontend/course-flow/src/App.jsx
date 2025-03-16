@@ -9,6 +9,8 @@ import Footer from './components/Footer';
 import ConfirmEmail from './pages/ConfirmEmail';
 import Courses from './pages/courses/CoursesAll';
 import CourseDetail from './pages/courses/CourseDetail';
+import CourseOverview from './pages/courses/CourseOverview';
+import LessonOverview from './pages/courses/LessonOverview';
 import ManagerCourses from './pages/courses/manager/ManagerCourses';
 import ManagerModules from './pages/courses/manager/ManagerModules';
 import ManagerItems from './pages/courses/manager/ManagerItems';
@@ -40,9 +42,11 @@ const App = () => {
                 <Route path="/confirm-email" element={<ConfirmEmail />} />
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/courses/:id" element={<CourseDetail />} />
+                <Route path="/course/:id/overview" element={<CourseOverview />} />
+                <Route path="/lesson/:lessonId/overview" element={<LessonOverview />} />
                 <Route path="/manager/courses" element={<ManagerCourses />} />
                 <Route path="/manager/courses/:courseId/modules" element={<ManagerModules />} />
-                <Route path="/manager/modules/:moduleId/overview" element={<ManagerItems />} /> 
+                <Route path="/manager/courses/:courseId/modules/:moduleId/overview" element={<ManagerItems />} /> 
             </Routes>
             <Footer />
         </Router>

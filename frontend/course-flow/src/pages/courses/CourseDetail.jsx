@@ -104,7 +104,7 @@ const CourseDetail = () => {
             <p>{course.description}</p>
             <p>
               {course.enrolled ? (
-                <button className="btn btn-success" onClick={() => navigate(`/course/${id}/learning`)}>
+                <button className="btn btn-success" onClick={() => navigate(`/course/${id}/overview`)}>
                   Start Learning!
                 </button>
               ) : (

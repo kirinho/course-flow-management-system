@@ -1,6 +1,6 @@
 package com.liushukov.courseFlow.controllers;
 
-import com.liushukov.courseFlow.dtos.CourseDto;
+import com.liushukov.courseFlow.dtos.CourseOverviewDto;
 import com.liushukov.courseFlow.dtos.CoursePageResponseDto;
 import com.liushukov.courseFlow.dtos.CourseResponseDto;
 import com.liushukov.courseFlow.models.Course;
@@ -14,10 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,9 +58,29 @@ public class CourseController {
             @RequestParam(value = "sortBy", defaultValue = "id") String sortBy,
             @RequestParam(value = "orderBy", defaultValue = "asc") String orderBy,
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(value = "pageSize", defaultValue = "12", required = false) int pageSize
+            @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize
     ) {
         List<CourseResponseDto> courses = courseService.getAllCourses(sortBy, orderBy, pageNumber, pageSize);
         return ResponseEntity.status(HttpStatus.OK).body(courses);
+    }
+
+    @GetMapping(path = "/{courseId}/overview")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CourseOverviewDto> courseOverview(
+            @PathVariable(value = "courseId") Long courseId,
+            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize
+    ) {
+        Optional<Course> course = courseService.getCourseById(courseId);
+        if (course.isPresent()) {
+            CourseOverviewDto courseOverviewDto = courseService.getAllModulesWithLessonsAndAssignments(
+                    course.get(),
+                    pageNumber,
+                    pageSize
+            );
+            return ResponseEntity.status(HttpStatus.OK).body(courseOverviewDto);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 }

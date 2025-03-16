@@ -2,7 +2,6 @@ package com.liushukov.courseFlow.controllers;
 
 import com.liushukov.courseFlow.dtos.CourseDto;
 import com.liushukov.courseFlow.dtos.CourseManagerResponseDto;
-import com.liushukov.courseFlow.dtos.CourseResponseDto;
 import com.liushukov.courseFlow.models.Course;
 import com.liushukov.courseFlow.models.User;
 import com.liushukov.courseFlow.services.CourseService;
@@ -29,12 +28,21 @@ public class CourseManagerController {
         this.courseService = courseService;
     }
 
+    @GetMapping(path = "/course/{courseId}")
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<String> courseName(@PathVariable(value = "courseId") Long courseId) {
+        Optional<Course> course = courseService.getCourseById(courseId);
+        return course
+                .map(value -> ResponseEntity.status(HttpStatus.OK).body(value.getName()))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
     @GetMapping(path = "/all")
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<List<CourseManagerResponseDto>> all(
             Authentication authentication,
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
-            @RequestParam(value = "pageSize", defaultValue = "12", required = false) Integer pageSize
+            @RequestParam(value = "pageSize", defaultValue = "20", required = false) Integer pageSize
     ) {
         User user = userService.getUserFromAuthentication(authentication);
         List<CourseManagerResponseDto> courses = courseService.getCoursesByManager(user.getId(), pageNumber, pageSize);

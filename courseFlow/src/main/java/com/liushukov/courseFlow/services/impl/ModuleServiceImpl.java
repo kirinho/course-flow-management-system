@@ -1,8 +1,6 @@
 package com.liushukov.courseFlow.services.impl;
 
-import com.liushukov.courseFlow.dtos.ModuleCreateDto;
-import com.liushukov.courseFlow.dtos.ModuleResponseDto;
-import com.liushukov.courseFlow.dtos.ModuleUpdateDto;
+import com.liushukov.courseFlow.dtos.*;
 import com.liushukov.courseFlow.models.Course;
 import com.liushukov.courseFlow.models.Module;
 import com.liushukov.courseFlow.repositories.ModuleRepository;
@@ -10,7 +8,6 @@ import com.liushukov.courseFlow.services.ModuleService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 

@@ -22,6 +22,13 @@ public interface BaseLessonAssignmentRepository extends JpaRepository<BaseLesson
     Optional<Assignment> findAssignmentById(@Param("blaId") long blaId);
 
     @Query("""
+            SELECT bla FROM  BaseLessonAssignment bla
+            LEFT JOIN FETCH bla.attachments
+            WHERE bla.id = :lessonId
+            """)
+    Lesson findLessonWithAttachments(@Param("lessonId") long lessonId);
+
+    @Query("""
         SELECT bla.id FROM BaseLessonAssignment bla
         WHERE bla.module.id = :moduleId
         ORDER BY bla.position

@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button, Modal, Form, Alert } from "react-bootstrap";
 import { useForm } from "react-hook-form";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const ManagerItems = () => {
-    const { moduleId } = useParams();
+    const { courseId, moduleId } = useParams();
+    const [moduleName, setModuleName] = useState("");
     const [items, setItems] = useState([]);
     const [error, setError] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -20,10 +23,40 @@ const ManagerItems = () => {
 
     useEffect(() => {
         if (!token) return;
+        axios.get(`http://localhost:8080/manager/modules/module/${moduleId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(response => setModuleName(response.data))
+        .catch(() => setError("Error fetching module details."));
+
         axios.get(`http://localhost:8080/manager/modules/overview/${moduleId}/all`, { headers: { Authorization: `Bearer ${token}` } })
             .then(response => setItems(response.data))
             .catch(() => setError("Error fetching items."));
     }, [token, moduleId]);
+
+    const handleDownload = async (fileId) => {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await axios.get(`http://localhost:8080/attachment/${fileId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+                responseType: 'json',
+            });
+    
+            const { fileName, fileData } = response.data;
+    
+            const byteCharacters = atob(fileData);
+            const byteNumbers = new Array(byteCharacters.length).fill(0).map((_, i) => byteCharacters.charCodeAt(i));
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray]);
+    
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.click();
+        } catch (error) {
+            console.error("Error downloading the file", error);
+        }
+    };
 
     const getFileIcon = (fileType) => {
         switch (fileType) {
@@ -133,7 +166,18 @@ const ManagerItems = () => {
 
     return (
         <div className="container mt-5">
-            <h2 className="mb-4">Items for Module {moduleId}</h2>
+            <div style={{ display: "flex", alignItems: "center" }}>
+                <Link to="/manager/courses" style={{ fontWeight: "bold", color: "#007bff", textDecoration: "none" }}>
+                Courses
+                </Link>
+                <span style={{ margin: "0 8px" }}>/</span>
+                <Link to={`/manager/courses/${courseId}/modules`} style={{ fontWeight: "bold", color: "#007bff", textDecoration: "none" }}>
+                Modules
+                </Link>
+                <span style={{ margin: "0 8px" }}>/</span>
+                <span style={{ color: "#6c757d" }}>Items</span>
+            </div>
+            <h2 className="mb-4">Items for module - {moduleName || "Loading..."}</h2>
             {error && <Alert variant="danger">{error}</Alert>}
             <ul className="list-group">
                 {items.map(item => (
@@ -144,33 +188,54 @@ const ManagerItems = () => {
     
                             {item.type === 'LESSON' ? (
                                 <>
-                                    <p><strong>Content:</strong> {item.content}</p>
-                                    <h6>Attachments:</h6>
+                                    <p><strong>Content:</strong></p>
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.content}</ReactMarkdown>
+                                    <h3 className="text-dark">Attachments</h3>
                                     <ul className="list-unstyled">
-                                        {item.attachments.map(attachment => (
-                                            <li key={attachment.id} className="ms-3 mb-1 d-flex align-items-center">
-                                                <i className={`bi bi-${getFileIcon(attachment.fileType)} me-2`} style={{ fontSize: '24px' }}></i>
-                                                {attachment.fileName}
-                                            </li>
-                                        ))}
+                                        {item.attachments.length > 0 ? (
+                                            item.attachments.map(attachment => (
+                                                <li key={attachment.id} className="d-flex align-items-center gap-3 mb-3">
+                                                    <i className={`bi bi-${getFileIcon(attachment.fileType)} me-2`} style={{ fontSize: '24px' }} />
+                                                    <Button
+                                                        variant="link"
+                                                        onClick={() => handleDownload(attachment.id)} // функція для завантаження
+                                                        className="text-primary"
+                                                    >
+                                                        {attachment.fileName}
+                                                    </Button>
+                                                </li>
+                                            ))
+                                        ) : (
+                                            <p className="text-muted">No attachments available.</p>
+                                        )}
                                     </ul>
                                 </>
                             ) : item.type === 'ASSIGNMENT' ? (
                                 <>
                                     <p><strong>Due Date:</strong> {new Date(item.dueDate).toLocaleDateString()}</p>
                                     <p><strong>Max Score:</strong> {item.maxScore}</p>
-                                    <h6>Attachments:</h6>
+                                    <h3 className="text-dark">Attachments</h3>
                                     <ul className="list-unstyled">
-                                        {item.attachments.map(attachment => (
-                                            <li key={attachment.id} className="ms-3 mb-1 d-flex align-items-center">
-                                                <i className={`bi bi-${getFileIcon(attachment.fileType)} me-2`} style={{ fontSize: '24px' }}></i>
-                                                {attachment.fileName}
-                                            </li>
-                                        ))}
+                                        {item.attachments.length > 0 ? (
+                                            item.attachments.map(attachment => (
+                                                <li key={attachment.id} className="d-flex align-items-center gap-3 mb-3">
+                                                    <i className={`bi bi-${getFileIcon(attachment.fileType)} me-2`} style={{ fontSize: '24px' }} />
+                                                    <Button
+                                                        variant="link"
+                                                        onClick={() => handleDownload(attachment.id)} // функція для завантаження
+                                                        className="text-primary"
+                                                    >
+                                                        {attachment.fileName}
+                                                    </Button>
+                                                </li>
+                                            ))
+                                        ) : (
+                                            <p className="text-muted">No attachments available.</p>
+                                        )}
                                     </ul>
                                 </>
                             ) : null}
-    
+
                             <div className="d-flex justify-content-end">
                                 <Button variant="secondary" className="me-2" onClick={() => handleOpenItemModal(item, item.type)}>
                                     Edit

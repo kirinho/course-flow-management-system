@@ -24,7 +24,7 @@ const Courses = () => {
             sortBy: sortBy,
             orderBy: orderBy,
             pageNumber: 0,
-            pageSize: 12,
+            pageSize: 20,
           },
         });
         setCourses(response.data);
@@ -148,10 +148,10 @@ const Courses = () => {
                   <Link className="cat-overlay text-white text-decoration-none" to={`/courses/${course.id}`}>
                     <h4 className="text-white font-weight-medium">{course.name}</h4>
                     <p className="text-white" style={{ fontStyle: "italic" }}>
-                      Author: {course.user.fullName}
+                      Author: {course.authorName}
                     </p>
                     <p className="text-white" style={{ fontStyle: "italic" }}>
-                      Contact email: {course.user.email}
+                      Contact email: {course.authorEmail}
                     </p>
                   </Link>
                 </div>

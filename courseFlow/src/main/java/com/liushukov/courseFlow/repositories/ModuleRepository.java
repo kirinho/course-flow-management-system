@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -17,4 +18,19 @@ public interface ModuleRepository extends JpaRepository<Module, Long> {
 
     @Query("SELECT m FROM Module m WHERE m.course.id = :courseId ORDER BY m.position")
     Page<Module> findAllModulesByCourse(@Param("courseId") long courseId, Pageable pageable);
+
+    @Query("""
+            SELECT m.id FROM Module m
+            WHERE m.course.id = :courseId
+            ORDER BY m.position
+            """)
+    Page<Long> findModulesIdsByCourse(@Param("courseId") long courseId, Pageable pageable);
+
+    @Query("""
+            SELECT m FROM Module m
+            LEFT JOIN FETCH m.lessonAssignments la
+            WHERE m.id IN :ids
+            ORDER BY m.position, la.position
+            """)
+    List<Module> findModulesWithLessonsAndAssignments(@Param("ids") List<Long> ids);
 }

@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 
 const ManagerModules = () => {
     const { courseId } = useParams();
+    const [courseName, setCourseName] = useState("");
     const [modules, setModules] = useState([]);
     const [error, setError] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -18,6 +19,12 @@ const ManagerModules = () => {
 
     useEffect(() => {
         if (!token) return;
+        axios.get(`http://localhost:8080/manager/courses/course/${courseId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(response => setCourseName(response.data))
+        .catch(() => setError("Error fetching course details."));
+
         axios.get(`http://localhost:8080/manager/modules/${courseId}/all`, { headers: { Authorization: `Bearer ${token}` } })
             .then(response => setModules(response.data))
             .catch(() => setError("Error fetching modules."));
@@ -72,12 +79,19 @@ const ManagerModules = () => {
 
     return (
         <div className="container mt-5">
-            <h2 className="mb-4">Modules for Course {courseId}</h2>
+            <div style={{ display: "flex", alignItems: "center" }}>
+                <Link to="/manager/courses" style={{ fontWeight: "bold", color: "#007bff", textDecoration: "none" }}>
+                    Courses
+                </Link>
+                <span style={{ margin: "0 8px" }}>/</span>
+                <span style={{ color: "#6c757d" }}>Modules</span>
+            </div>
+            <h2 className="mb-4">Modules for Course - {courseName || "Loading..."}</h2>
             {error && <Alert variant="danger">{error}</Alert>}
             <ul className="list-group">
                 {modules.map(module => (
                     <li key={module.id} className="list-group-item d-flex justify-content-between align-items-center">
-                        <Link to={`/manager/modules/${module.id}/overview`} className="text-decoration-none">
+                        <Link to={`/manager/courses/${courseId}/modules/${module.id}/overview`} className="text-decoration-none">
                             {module.name}
                         </Link>
                         <div>
