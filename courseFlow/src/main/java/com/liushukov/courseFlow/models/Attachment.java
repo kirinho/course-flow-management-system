@@ -29,6 +29,13 @@ public class Attachment {
         this.lessonAssignment = lessonAssignment;
     }
 
+    public Attachment(String fileName, AttachmentExtension fileType, byte[] fileData, Submission submission) {
+        this.fileName = fileName;
+        this.fileType = fileType;
+        this.fileData = fileData;
+        this.submission = submission;
+    }
+
     public Attachment() {}
 
     public String getFileName() {

@@ -26,6 +26,13 @@ public class UserController {
         this.userRepository = userRepository;
     }
 
+    @GetMapping(path = "/me/role")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> myRole(Authentication authentication) {
+        User user = userService.getUserFromAuthentication(authentication);
+        return ResponseEntity.status(HttpStatus.OK).body(user.getRole().name());
+    }
+
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<User> me(Authentication authentication) {

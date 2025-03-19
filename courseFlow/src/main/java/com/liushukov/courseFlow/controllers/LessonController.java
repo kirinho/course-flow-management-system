@@ -5,6 +5,7 @@ import com.liushukov.courseFlow.models.Lesson;
 import com.liushukov.courseFlow.services.LessonService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,7 @@ public class LessonController {
     }
 
     @GetMapping(path = "/{lessonId}/overview")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<LessonResponseDto> lesson(@PathVariable(value = "lessonId") Long lessonId) {
         Optional<Lesson> lesson = lessonService.getLessonById(lessonId);
         return lesson

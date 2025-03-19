@@ -29,6 +29,23 @@ public class EnrollmentController {
         this.enrollmentService = enrollmentService;
     }
 
+    @GetMapping(path = "/info/{courseId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> enrolled(Authentication authentication, @PathVariable(value = "courseId") Long courseId) {
+        User user = userService.getUserFromAuthentication(authentication);
+        Optional<Course> course = courseService.getCourseById(courseId);
+        if (user.isEnabled() && course.isPresent()) {
+            Optional<Enrollment> enrollment = enrollmentService.getEnrollmentByUserAndCourse(user, course.get());
+            if (enrollment.isPresent() || course.get().getUser().equals(user)) {
+                return ResponseEntity.status(HttpStatus.OK).build();
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> enrolling(Authentication authentication, @Valid @RequestBody EnrollDto enrollDto) {

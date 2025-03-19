@@ -3,6 +3,7 @@ package com.liushukov.courseFlow.repositories;
 import com.liushukov.courseFlow.models.Attachment;
 import com.liushukov.courseFlow.models.BaseLessonAssignment;
 import com.liushukov.courseFlow.models.Lesson;
+import com.liushukov.courseFlow.models.Submission;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,4 +20,8 @@ public interface AttachmentRepository extends JpaRepository<Attachment, Long> {
     @Modifying
     @Query("DELETE FROM Attachment a WHERE a.lessonAssignment = :item")
     void deleteByLessonAssignment(@Param("item") BaseLessonAssignment item);
+
+    @Modifying
+    @Query("DELETE FROM Attachment a WHERE a.submission = :submission")
+    void deleteBySubmission(@Param("submission") Submission submission);
 }

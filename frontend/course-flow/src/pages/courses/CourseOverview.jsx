@@ -1,33 +1,61 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { Card } from "react-bootstrap";
 import { FaBook, FaTasks } from "react-icons/fa";
 
 const CourseOverview = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasAccess, setHasAccess] = useState(null);
 
   useEffect(() => {
-    const fetchCourseOverview = async () => {
+    const checkEnrollment = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(`http://localhost:8080/courses/${id}/overview`, {
+        const response = await axios.get(`http://localhost:8080/enroll/info/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setCourse(response.data);
+        if (response.status === 200) {
+          setHasAccess(true);
+        }
       } catch (error) {
-        console.error("Error fetching course overview", error);
-      } finally {
-        setIsLoading(false);
+        if (error.response?.status === 403) {
+          setHasAccess(false);
+          setTimeout(() => navigate(`/courses/${id}`), 3000);
+        }
       }
     };
 
-    fetchCourseOverview();
+    checkEnrollment();
   }, [id]);
 
+  useEffect(() => {
+    if (hasAccess === false) {
+      setIsLoading(false);
+    } else if (hasAccess === true) {
+      const fetchCourseOverview = async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await axios.get(`http://localhost:8080/courses/${id}/overview`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setCourse(response.data);
+        } catch (error) {
+          console.error("Error fetching course overview", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchCourseOverview();
+    }
+  }, [hasAccess, id]);
+
   if (isLoading) return <div className="text-center text-lg">Loading...</div>;
+  if (hasAccess === false) return <div className="text-center text-danger">Access denied.</div>;
   if (!course) return <div className="text-center text-danger">Course not found.</div>;
 
   return (
@@ -79,7 +107,12 @@ const CourseOverview = () => {
                           {item.title}
                         </Link>
                       ) : (
-                        <span>{item.title}</span>
+                        <Link
+                          to={`/assignment/${item.id}/overview`}
+                          className="text-decoration-none text-white"
+                        >
+                          {item.title}
+                        </Link>
                       )}
                     </span>
                     </li>

@@ -83,10 +83,6 @@ public abstract class BaseLessonAssignment {
         this.position = position;
     }
 
-    public void setAttachments(List<Attachment> attachments) {
-        this.attachments = attachments;
-    }
-
     public void setModule(Module module) {
         this.module = module;
     }

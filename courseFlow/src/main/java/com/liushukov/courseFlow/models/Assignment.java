@@ -1,9 +1,9 @@
 package com.liushukov.courseFlow.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-
-import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @DiscriminatorValue("ASSIGNMENT")
@@ -13,6 +13,9 @@ public class Assignment extends BaseLessonAssignment {
     private Date dueDate;
     @Column(name = "max_score", nullable = false)
     private Integer maxScore;
+    @JsonIgnore
+    @OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Submission> submissions;
 
     public Assignment() {}
 
@@ -44,5 +47,9 @@ public class Assignment extends BaseLessonAssignment {
 
     public void setMaxScore(Integer maxScore) {
         this.maxScore = maxScore;
+    }
+
+    public List<Submission> getSubmissions() {
+        return submissions;
     }
 }

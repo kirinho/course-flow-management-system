@@ -1,11 +1,11 @@
 package com.liushukov.courseFlow.services.impl;
 
-import com.liushukov.courseFlow.dtos.AssignmentCreateDto;
-import com.liushukov.courseFlow.dtos.AssignmentUpdateDto;
+import com.liushukov.courseFlow.dtos.*;
 import com.liushukov.courseFlow.models.*;
 import com.liushukov.courseFlow.models.Module;
 import com.liushukov.courseFlow.repositories.AttachmentRepository;
 import com.liushukov.courseFlow.repositories.BaseLessonAssignmentRepository;
+import com.liushukov.courseFlow.repositories.SubmissionRepository;
 import com.liushukov.courseFlow.services.AssignmentService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -23,15 +23,65 @@ import static com.liushukov.courseFlow.models.AttachmentExtension.UNSUPPORTED;
 public class AssignmentServiceImpl implements AssignmentService {
     private final BaseLessonAssignmentRepository repository;
     private final AttachmentRepository attachmentRepository;
+    private final SubmissionRepository submissionRepository;
 
-    public AssignmentServiceImpl(BaseLessonAssignmentRepository repository, AttachmentRepository attachmentRepository) {
+    public AssignmentServiceImpl(BaseLessonAssignmentRepository repository, AttachmentRepository attachmentRepository, SubmissionRepository submissionRepository) {
         this.repository = repository;
         this.attachmentRepository = attachmentRepository;
+        this.submissionRepository = submissionRepository;
     }
 
     @Override
     public Optional<Assignment> getAssignmentById(long id) {
         return repository.findAssignmentById(id);
+    }
+
+    @Override
+    public AssignmentResponseDto getAssignmentOverview(long assignmentId, long studentId) {
+        Assignment assignmentWithAttachments = repository.findAssignmentWithAttachments(assignmentId);
+        Optional<Submission> submission = submissionRepository.findSubmissionWithAttachmentsAndGrade(assignmentId, studentId);
+        return submission.map(value -> new AssignmentResponseDto(
+                assignmentWithAttachments.getId(),
+                assignmentWithAttachments.getTitle(),
+                assignmentWithAttachments.getDescription(),
+                assignmentWithAttachments.getDueDate(),
+                assignmentWithAttachments.getMaxScore(),
+                assignmentWithAttachments.getAttachments().stream().map(attachment -> new AttachmentResponseDto(
+                        attachment.getId(),
+                        attachment.getFileName(),
+                        attachment.getFileType().name()
+                )).toList(),
+                new SubmissionResponseDto(
+                        value.getId(),
+                        value.getSubmittedAt(),
+                        value.getTextSubmission(),
+                        value.getAttachments().stream().map(attachment -> new AttachmentResponseDto(
+                                attachment.getId(),
+                                attachment.getFileName(),
+                                attachment.getFileType().name()
+                        )).toList(),
+                        value.getGrade() != null
+                                ? new GradeResponseDto(
+                                    value.getGrade().getId(),
+                                    value.getGrade().getScore(),
+                                    value.getGrade().getFeedback(),
+                                    value.getGrade().getManager().getFullName()
+                                )
+                                : null
+                )
+        )).orElseGet(() -> new AssignmentResponseDto(
+                assignmentWithAttachments.getId(),
+                assignmentWithAttachments.getTitle(),
+                assignmentWithAttachments.getDescription(),
+                assignmentWithAttachments.getDueDate(),
+                assignmentWithAttachments.getMaxScore(),
+                assignmentWithAttachments.getAttachments().stream().map(attachment -> new AttachmentResponseDto(
+                        attachment.getId(),
+                        attachment.getFileName(),
+                        attachment.getFileType().name()
+                )).toList(),
+                null));
+
     }
 
     @Transactional
