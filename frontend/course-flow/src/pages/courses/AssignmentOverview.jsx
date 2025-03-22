@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import { Card, Button, Modal, Form } from "react-bootstrap";
+import { Card, Button, Modal, Form, Dropdown } from "react-bootstrap";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -14,6 +14,7 @@ const AssignmentOverview = () => {
   const [showModal, setShowModal] = useState(false);
   const [textSubmission, setTextSubmission] = useState("");
   const [files, setFiles] = useState([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     const fetchAssignment = async () => {
@@ -88,15 +89,33 @@ const AssignmentOverview = () => {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteConfirm = async () => {
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`http://localhost:8080/submission/${assignment.submission.id}/delete`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      setShowDeleteConfirm(false);
       window.location.reload();
     } catch (error) {
       console.error("Error deleting submission", error);
+    }
+  };
+
+  const getFileIcon = (fileType) => {
+    switch (fileType) {
+      case 'PDF':
+        return 'file-earmark-pdf';
+      case 'DOCX':
+        return 'file-earmark-word';
+      case 'DOC':
+        return 'file-earmark-word';
+      case 'XSLX':
+        return 'file-earmark-excel';
+      case 'XSL':
+        return 'file-earmark-excel';
+      default:
+        return 'file-earmark';
     }
   };
 
@@ -111,14 +130,15 @@ const AssignmentOverview = () => {
             <div className="text-center mb-5">
               <h1 className="mt-4">{assignment.title}</h1>
               <p className="text-muted">{assignment.description}</p>
-              <p><strong>Due Date:</strong> {new Date(assignment.dueDate).toLocaleDateString()}</p>
-              <p><strong>Max Score:</strong> {assignment.maxScore}</p>
             </div>
+            <p><strong>Due Date:</strong> {new Date(assignment.dueDate).toLocaleDateString()}</p>
+            <p><strong>Max Score:</strong> {assignment.maxScore}</p>
             <h3 className="text-dark">Attachments</h3>
             <ul className="list-unstyled">
               {attachments.length > 0 ? (
                 attachments.map((file) => (
                   <li key={file.id} className="d-flex align-items-center gap-3 mb-3">
+                    <i className={`bi bi-${getFileIcon(file.fileType)} me-2`} />
                     <Button variant="link" onClick={() => handleDownload(file.id)} className="text-primary">
                       {file.fileName}
                     </Button>
@@ -132,11 +152,20 @@ const AssignmentOverview = () => {
         </div>
       </div>
 
-      {assignment.submission && (
+      {assignment.submission ? (
         <div className="row">
           <div className="col-12 mb-4">
             <Card className="bg-light border shadow-sm p-4 rounded-lg">
-              <h3 className="text-dark">Submission</h3>
+              <div className="d-flex justify-content-between align-items-center">
+                <h3 className="text-dark">Submission</h3>
+                <Dropdown>
+                  <Dropdown.Toggle variant="secondary" id="dropdown-basic">⋮</Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    <Dropdown.Item onClick={() => setShowModal(true)}>Edit Submission</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setShowDeleteConfirm(true)} className="text-danger">Delete Submission</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </div>
               <p><strong>Submitted At:</strong> {new Date(assignment.submission.submittedAt).toLocaleDateString()}</p>
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{assignment.submission.textSubmission || "No submission."}</ReactMarkdown>
               <h3 className="text-dark">Attachments</h3>
@@ -144,6 +173,7 @@ const AssignmentOverview = () => {
                 {submissionAttachments.length > 0 ? (
                   submissionAttachments.map((file) => (
                     <li key={file.id} className="d-flex align-items-center gap-3 mb-3">
+                      <i className={`bi bi-${getFileIcon(file.fileType)} me-2`} />
                       <Button variant="link" onClick={() => handleDownload(file.id)} className="text-primary">
                         {file.fileName}
                       </Button>
@@ -153,41 +183,54 @@ const AssignmentOverview = () => {
                   <p className="text-muted">No attachments available.</p>
                 )}
               </ul>
-              <Button variant="danger" onClick={handleDelete}>Delete Submission</Button>
             </Card>
-            
-            {assignment.submission.grade && (
-              <Card className="bg-light border shadow-sm p-4 rounded-lg mt-3">
-                <div className="text-center">
-                  <h4 className="text-dark">Grade</h4>
-                  <p className="font-weight-bold">Score: {assignment.submission.grade.score}</p>
-                  <p><strong>Feedback:</strong> {assignment.submission.grade.managerFullName} {assignment.submission.grade.feedback}</p>
-                </div>
-              </Card>
-            )}
+
+      {assignment.submission.grade && (
+        <Card className="bg-light border shadow-sm p-4 rounded-lg mt-3">
+          <div className="justify-content-between align-items-center">
+            <h3 className="text-dark">Grade</h3>
+            <p><strong>Score:</strong> {assignment.submission.grade.score}</p>
+            <p><strong>Feedback:</strong>  {assignment.submission.grade.feedback}</p>
+            <p><strong>Manager:</strong> {assignment.submission.grade.managerFullName}</p>
           </div>
-        </div>
-      )}
-      <Button onClick={() => setShowModal(true)}>{assignment.submission ? "Edit Submission" : "Create Submission"}</Button>
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>{assignment.submission ? "Edit Submission" : "Create Submission"}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group className="mb-3">
-            <Form.Label>Text Submission</Form.Label>
-            <Form.Control as="textarea" value={textSubmission} onChange={(e) => setTextSubmission(e.target.value)} />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Attachments</Form.Label>
-            <Form.Control type="file" multiple onChange={handleFileChange} />
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
-          <Button variant="primary" onClick={handleSubmit}>{assignment.submission ? "Update" : "Submit"}</Button>
-        </Modal.Footer>
-      </Modal>
+        </Card>
+        )}
+            </div>
+          </div>
+        ) : (
+          <Button onClick={() => setShowModal(true)}>Create Submission</Button>
+        )}
+
+        <Modal show={showModal} onHide={() => setShowModal(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>{assignment.submission ? "Edit Submission" : "Create Submission"}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form.Group className="mb-3">
+              <Form.Label>Text Submission</Form.Label>
+              <Form.Control as="textarea" value={textSubmission} onChange={(e) => setTextSubmission(e.target.value)} />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Attachments</Form.Label>
+              <Form.Control type="file" multiple onChange={handleFileChange} />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
+            <Button variant="primary" onClick={handleSubmit}>{assignment.submission ? "Update" : "Submit"}</Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal show={showDeleteConfirm} onHide={() => setShowDeleteConfirm(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Confirm Deletion</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>Are you sure you want to delete this submission? This action cannot be undone.</Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowDeleteConfirm(false)}>Cancel</Button>
+            <Button variant="danger" onClick={handleDeleteConfirm}>Delete</Button>
+          </Modal.Footer>
+        </Modal>
     </div>
   );
 };

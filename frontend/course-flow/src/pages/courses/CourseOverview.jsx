@@ -10,6 +10,11 @@ const CourseOverview = () => {
   const [course, setCourse] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(null);
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    setRole(localStorage.getItem("role"));
+  }, []);
 
   useEffect(() => {
     const checkEnrollment = async () => {
@@ -101,19 +106,25 @@ const CourseOverview = () => {
                     <span>
                       {item.type === "LESSON" ? (
                         <Link
-                          to={`/lesson/${item.id}/overview`}
+                          to={`/course/${id}/lesson/${item.id}/overview`}
                           className="text-decoration-none text-white"
                         >
                           {item.title}
                         </Link>
-                      ) : (
+                      ) : role === "STUDENT" ? (
                         <Link
                           to={`/assignment/${item.id}/overview`}
-                          className="text-decoration-none text-white"
+                          className="text-decoration-none text-dark"
                         >
                           {item.title}
                         </Link>
-                      )}
+                      ) : <Link
+                            to={`/manager/assignment/${item.id}/overview`}
+                            className="text-decoration-none text-dark"
+                          >
+                            {item.title}
+                          </Link>
+                      }
                     </span>
                     </li>
                   ))}

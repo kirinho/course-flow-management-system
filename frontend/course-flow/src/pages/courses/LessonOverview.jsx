@@ -1,35 +1,61 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
-import { Card, Button, Form } from "react-bootstrap";
+import { useParams, useNavigate } from "react-router-dom";
+import { Card, Button } from "react-bootstrap";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { FaBook, FaTasks } from "react-icons/fa";
 
 const LessonOverview = () => {
-  const { lessonId } = useParams();
+  const { courseId, lessonId } = useParams();
+  const navigate = useNavigate();
   const [lesson, setLesson] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [attachments, setAttachments] = useState([]);
+  const [hasAccess, setHasAccess] = useState(null);
 
   useEffect(() => {
-    const fetchLesson = async () => {
+    const checkAccess = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(`http://localhost:8080/lesson/${lessonId}/overview`, {
+        const response = await axios.get(`http://localhost:8080/enroll/info/${courseId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setLesson(response.data);
-        setAttachments(response.data.attachments);
+        if (response.status === 200) {
+          setHasAccess(true);
+        }
       } catch (error) {
-        console.error("Error fetching lesson overview", error);
-      } finally {
-        setIsLoading(false);
+        if (error.response?.status === 403) {
+          setHasAccess(false);
+          setTimeout(() => navigate(`/courses`), 3000);
+        }
       }
     };
 
-    fetchLesson();
-  }, [lessonId]);
+    checkAccess();
+  }, [lessonId, navigate]);
+
+  useEffect(() => {
+    if (hasAccess === true) {
+      const fetchLesson = async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await axios.get(`http://localhost:8080/lesson/course/${courseId}/lesson/${lessonId}/overview`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setLesson(response.data);
+          setAttachments(response.data.attachments);
+        } catch (error) {
+          console.error("Error fetching lesson overview", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchLesson();
+    } else if (hasAccess === false) {
+      setIsLoading(false);
+    }
+  }, [hasAccess, lessonId]);
 
   const handleDownload = async (fileId) => {
     try {
@@ -73,6 +99,7 @@ const LessonOverview = () => {
   };
 
   if (isLoading) return <div className="text-center text-lg">Loading...</div>;
+  if (hasAccess === false) return <div className="text-center text-danger">Access denied.</div>;
   if (!lesson) return <div className="text-center text-danger">Lesson not found.</div>;
 
   return (

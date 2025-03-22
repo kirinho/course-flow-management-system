@@ -11,6 +11,7 @@ import CourseDetail from './pages/courses/CourseDetail';
 import CourseOverview from './pages/courses/CourseOverview';
 import LessonOverview from './pages/courses/LessonOverview';
 import AssignmentOverview from './pages/courses/AssignmentOverview';
+import ManagerAssignmentOverview from './pages/courses/manager/ManagerAssignmentOverview';
 import ManagerCourses from './pages/courses/manager/ManagerCourses';
 import ManagerModules from './pages/courses/manager/ManagerModules';
 import ManagerItems from './pages/courses/manager/ManagerItems';
@@ -30,8 +31,9 @@ const App = () => {
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/courses/:id" element={<CourseDetail />} />
                 <Route path="/course/:id/overview" element={<CourseOverview />} />
-                <Route path="/lesson/:lessonId/overview" element={<LessonOverview />} />
+                <Route path="/course/:courseId/lesson/:lessonId/overview" element={<LessonOverview />} />
                 <Route path="/assignment/:assignmentId/overview" element={<AssignmentOverview />} />
+                <Route path="/manager/assignment/:assignmentId/overview" element={<ManagerAssignmentOverview />} />
                 <Route path="/manager/courses" element={<ManagerCourses />} />
                 <Route path="/manager/courses/:courseId/modules" element={<ManagerModules />} />
                 <Route path="/manager/courses/:courseId/modules/:moduleId/overview" element={<ManagerItems />} /> 

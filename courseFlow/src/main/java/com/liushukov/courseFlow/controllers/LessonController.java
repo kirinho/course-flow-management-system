@@ -22,12 +22,16 @@ public class LessonController {
         this.lessonService = lessonService;
     }
 
-    @GetMapping(path = "/{lessonId}/overview")
+    @GetMapping(path = "/course/{courseId}/lesson/{lessonId}/overview")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<LessonResponseDto> lesson(@PathVariable(value = "lessonId") Long lessonId) {
+    public ResponseEntity<LessonResponseDto> lesson(
+            @PathVariable(value = "courseId") Long courseId,
+            @PathVariable(value = "lessonId") Long lessonId) {
         Optional<Lesson> lesson = lessonService.getLessonById(lessonId);
-        return lesson
-                .map(value -> ResponseEntity.status(HttpStatus.OK).body(lessonService.getLessonOverview(value)))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        if (lesson.isPresent() && lesson.get().getModule().getCourse().getId().equals(courseId)) {
+            return ResponseEntity.status(HttpStatus.OK).body(lessonService.getLessonOverview(lesson.get()));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 }
