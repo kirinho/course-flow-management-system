@@ -6,7 +6,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 const ManagerAssignmentOverview = () => {
-  const { assignmentId } = useParams();
+  const { courseId, assignmentId } = useParams();
   const location = useLocation();
   const navigate = useNavigate(); 
   const queryParams = new URLSearchParams(location.search);
@@ -25,8 +25,8 @@ const ManagerAssignmentOverview = () => {
       try {
         const token = localStorage.getItem("token");
         const url = selectedUserId
-          ? `http://localhost:8080/assignment/${assignmentId}/overview?userId=${selectedUserId}`
-          : `http://localhost:8080/assignment/${assignmentId}/overview`;
+          ? `http://localhost:8080/assignment/${assignmentId}/overview?courseId=${courseId}&userId=${selectedUserId}`
+          : `http://localhost:8080/assignment/${assignmentId}/overview?courseId=${courseId}`;
         const response = await axios.get(url, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -150,7 +150,7 @@ const ManagerAssignmentOverview = () => {
   };
 
   const handleStudentSelect = (studentId) => {
-    navigate(`/manager/assignment/${assignmentId}/overview?userId=${studentId}`);
+    navigate(`/manager/course/${courseId}/assignment/${assignmentId}/overview?userId=${studentId}`);
   };
 
   if (isLoading)
@@ -161,87 +161,47 @@ const ManagerAssignmentOverview = () => {
     );
 
   return (
-    <div className="container py-5">
-            {!selectedUserId && (
-        <div className="mb-4">
-          <h3>Choose student for grading:</h3>
-          <Dropdown>
-            <Dropdown.Toggle variant="primary" id="dropdown-basic">
-              Choose student
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              {students.map((student) => (
-                <Dropdown.Item
-                  key={student.id}
-                  onClick={() => handleStudentSelect(student.id)}
-                >
-                  {student.fullName} ({student.email})
-                </Dropdown.Item>
-              ))}
-            </Dropdown.Menu>
-          </Dropdown>
-        </div>
-      )}
-      <div className="row">
-        <div className="col-12 mb-4">
-          <Card className="bg-light border shadow-sm p-4 rounded-lg">
-            <div className="text-center mb-5">
-              <h1 className="mt-4">{assignment.title}</h1>
-              <p className="text-muted">{assignment.description}</p>
-            </div>
-            <p>
-              <strong>Due Date:</strong>{" "}
-              {new Date(assignment.dueDate).toLocaleDateString()}
-            </p>
-            <p>
-              <strong>Max Score:</strong> {assignment.maxScore}
-            </p>
-            <h3 className="text-dark">Attachments</h3>
-            <ul className="list-unstyled">
-              {attachments.length > 0 ? (
-                attachments.map((file) => (
-                  <li
-                    key={file.id}
-                    className="d-flex align-items-center gap-3 mb-3"
-                  >
-                    <i className={`bi bi-${getFileIcon(file.fileType)} me-2`} />
-                    <Button
-                      variant="link"
-                      onClick={() => handleDownload(file.id)}
-                      className="text-primary"
-                    >
-                      {file.fileName}
-                    </Button>
-                  </li>
-                ))
-              ) : (
-                <p className="text-muted">No attachments available.</p>
-              )}
-            </ul>
-          </Card>
-        </div>
-      </div>
+    <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
 
-      {assignment.submission ? (
+      <div className="container py-5">
+              {!selectedUserId && (
+          <div className="mb-4">
+            <h3>Choose student for grading:</h3>
+            <Dropdown>
+              <Dropdown.Toggle variant="primary" id="dropdown-basic">
+                Choose student
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                {students.map((student) => (
+                  <Dropdown.Item
+                    key={student.id}
+                    onClick={() => handleStudentSelect(student.id)}
+                  >
+                    {student.fullName} ({student.email})
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
+          </div>
+        )}
         <div className="row">
           <div className="col-12 mb-4">
-            {/* Відображення подання (read-only) */}
             <Card className="bg-light border shadow-sm p-4 rounded-lg">
-              <div className="d-flex justify-content-between align-items-center">
-                <h3 className="text-dark">Submission</h3>
+              <div className="text-center mb-5">
+                <h1 className="mt-4">{assignment.title}</h1>
+                <p className="text-muted">{assignment.description}</p>
               </div>
               <p>
-                <strong>Submitted At:</strong>{" "}
-                {new Date(assignment.submission.submittedAt).toLocaleDateString()}
+                <strong>Due Date:</strong>{" "}
+                {new Date(assignment.dueDate).toLocaleDateString()}
               </p>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {assignment.submission.textSubmission || "No submission."}
-              </ReactMarkdown>
-              <h3 className="text-dark mt-3">Submission Attachments</h3>
+              <p>
+                <strong>Max Score:</strong> {assignment.maxScore}
+              </p>
+              <h3 className="text-dark">Attachments</h3>
               <ul className="list-unstyled">
-                {assignment.submission.attachments &&
-                assignment.submission.attachments.length > 0 ? (
-                  assignment.submission.attachments.map((file) => (
+                {attachments.length > 0 ? (
+                  attachments.map((file) => (
                     <li
                       key={file.id}
                       className="d-flex align-items-center gap-3 mb-3"
@@ -261,108 +221,151 @@ const ManagerAssignmentOverview = () => {
                 )}
               </ul>
             </Card>
-
-            {assignment.submission.grade && (
-              <Card className="bg-light border shadow-sm p-4 rounded-lg mt-3">
-                <div className="d-flex justify-content-between align-items-center">
-                  <h3 className="text-dark">Grade</h3>
-                  <Dropdown>
-                    <Dropdown.Toggle variant="secondary" id="dropdown-basic">
-                      ⋮
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu>
-                      <Dropdown.Item onClick={() => setShowModal(true)}>
-                        Edit Grade
-                      </Dropdown.Item>
-                      <Dropdown.Item
-                        onClick={() => setShowDeleteConfirm(true)}
-                        className="text-danger"
-                      >
-                        Delete Grade
-                      </Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
-                </div>
-                <p>
-                  <strong>Score:</strong>{" "}
-                  {assignment.submission.grade.score}
-                </p>
-                <p>
-                  <strong>Feedback:</strong>{" "}
-                  {assignment.submission.grade.feedback}
-                </p>
-                <p>
-                  <strong>Manager:</strong>{" "}
-                  {assignment.submission.grade.managerFullName}
-                </p>
-              </Card>
-            )}
-
-            {!assignment.submission.grade && (
-              <Button onClick={() => setShowModal(true)}>Create Grade</Button>
-            )}
           </div>
         </div>
-      ) : (
-        <div className="text-center text-warning">
-          Submission not available for grading.
-        </div>
-      )}
 
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            {assignment.submission && assignment.submission.grade
-              ? "Edit Grade"
-              : "Create Grade"}
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group className="mb-3">
-            <Form.Label>Score</Form.Label>
-            <Form.Control
-              type="number"
-              value={gradeScore}
-              onChange={(e) => setGradeScore(e.target.value)}
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Label>Feedback</Form.Label>
-            <Form.Control
-              as="textarea"
-              value={gradeFeedback}
-              onChange={(e) => setGradeFeedback(e.target.value)}
-            />
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={handleSubmit}>
-            {assignment.submission && assignment.submission.grade
-              ? "Update"
-              : "Submit"}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+        {assignment.submission ? (
+          <div className="row">
+            <div className="col-12 mb-4">
+              {/* Відображення подання (read-only) */}
+              <Card className="bg-light border shadow-sm p-4 rounded-lg">
+                <div className="d-flex justify-content-between align-items-center">
+                  <h3 className="text-dark">Submission</h3>
+                </div>
+                <p>
+                  <strong>Submitted At:</strong>{" "}
+                  {new Date(assignment.submission.submittedAt).toLocaleDateString()}
+                </p>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {assignment.submission.textSubmission || "No submission."}
+                </ReactMarkdown>
+                <h3 className="text-dark mt-3">Submission Attachments</h3>
+                <ul className="list-unstyled">
+                  {assignment.submission.attachments &&
+                  assignment.submission.attachments.length > 0 ? (
+                    assignment.submission.attachments.map((file) => (
+                      <li
+                        key={file.id}
+                        className="d-flex align-items-center gap-3 mb-3"
+                      >
+                        <i className={`bi bi-${getFileIcon(file.fileType)} me-2`} />
+                        <Button
+                          variant="link"
+                          onClick={() => handleDownload(file.id)}
+                          className="text-primary"
+                        >
+                          {file.fileName}
+                        </Button>
+                      </li>
+                    ))
+                  ) : (
+                    <p className="text-muted">No attachments available.</p>
+                  )}
+                </ul>
+              </Card>
 
-      <Modal show={showDeleteConfirm} onHide={() => setShowDeleteConfirm(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm Deletion</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Are you sure you want to delete this grade? This action cannot be undone.
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteConfirm(false)}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={handleDeleteConfirm}>
-            Delete
-          </Button>
-        </Modal.Footer>
-      </Modal>
+              {assignment.submission.grade && (
+                <Card className="bg-light border shadow-sm p-4 rounded-lg mt-3">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <h3 className="text-dark">Grade</h3>
+                    <Dropdown>
+                      <Dropdown.Toggle variant="secondary" id="dropdown-basic">
+                        ⋮
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu>
+                        <Dropdown.Item onClick={() => setShowModal(true)}>
+                          Edit Grade
+                        </Dropdown.Item>
+                        <Dropdown.Item
+                          onClick={() => setShowDeleteConfirm(true)}
+                          className="text-danger"
+                        >
+                          Delete Grade
+                        </Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  </div>
+                  <p>
+                    <strong>Score:</strong>{" "}
+                    {assignment.submission.grade.score}
+                  </p>
+                  <p>
+                    <strong>Feedback:</strong>{" "}
+                    {assignment.submission.grade.feedback}
+                  </p>
+                  <p>
+                    <strong>Manager:</strong>{" "}
+                    {assignment.submission.grade.managerFullName}
+                  </p>
+                </Card>
+              )}
+
+              {!assignment.submission.grade && (
+                <Button onClick={() => setShowModal(true)}>Create Grade</Button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center text-warning">
+            Submission not available for grading.
+          </div>
+        )}
+
+        <Modal show={showModal} onHide={() => setShowModal(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>
+              {assignment.submission && assignment.submission.grade
+                ? "Edit Grade"
+                : "Create Grade"}
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form.Group className="mb-3">
+              <Form.Label>Score</Form.Label>
+              <Form.Control
+                type="number"
+                value={gradeScore}
+                onChange={(e) => setGradeScore(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Feedback</Form.Label>
+              <Form.Control
+                as="textarea"
+                value={gradeFeedback}
+                onChange={(e) => setGradeFeedback(e.target.value)}
+              />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={handleSubmit}>
+              {assignment.submission && assignment.submission.grade
+                ? "Update"
+                : "Submit"}
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal show={showDeleteConfirm} onHide={() => setShowDeleteConfirm(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Confirm Deletion</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            Are you sure you want to delete this grade? This action cannot be undone.
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowDeleteConfirm(false)}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDeleteConfirm}>
+              Delete
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      </div>
     </div>
   );
 };

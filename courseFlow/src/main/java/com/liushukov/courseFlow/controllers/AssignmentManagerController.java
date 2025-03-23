@@ -6,6 +6,7 @@ import com.liushukov.courseFlow.models.Assignment;
 import com.liushukov.courseFlow.models.Module;
 import com.liushukov.courseFlow.services.AssignmentService;
 import com.liushukov.courseFlow.services.ModuleService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -38,7 +39,7 @@ public class AssignmentManagerController {
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<Void> create(
             @PathVariable(value = "moduleId") Long moduleId,
-            @RequestPart(value = "item") AssignmentCreateDto assignmentCreateDto,
+            @RequestPart(value = "item") @Valid AssignmentCreateDto assignmentCreateDto,
             @RequestPart(value = "attachments", required = false) MultipartFile[] attachments
     ) {
         Optional<Module> module = moduleService.getModuleById(moduleId);
@@ -55,7 +56,7 @@ public class AssignmentManagerController {
     public ResponseEntity<Void> update(
             @PathVariable(value = "moduleId") Long moduleId,
             @PathVariable(value = "assignmentId") Long assignmentId,
-            @RequestPart(value = "item") AssignmentUpdateDto assignmentUpdateDto,
+            @RequestPart(value = "item") @Valid AssignmentUpdateDto assignmentUpdateDto,
             @RequestPart(value = "attachments", required = false) MultipartFile[] attachments
     ) {
         Optional<Module> module = moduleService.getModuleById(moduleId);

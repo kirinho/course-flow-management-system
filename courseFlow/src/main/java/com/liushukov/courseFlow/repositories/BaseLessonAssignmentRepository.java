@@ -1,5 +1,6 @@
 package com.liushukov.courseFlow.repositories;
 
+import com.liushukov.courseFlow.dtos.StudentTotalGradeProjection;
 import com.liushukov.courseFlow.models.Assignment;
 import com.liushukov.courseFlow.models.BaseLessonAssignment;
 import com.liushukov.courseFlow.models.Lesson;
@@ -34,6 +35,17 @@ public interface BaseLessonAssignmentRepository extends JpaRepository<BaseLesson
             WHERE bla.id = :assignmentId
             """)
     Assignment findAssignmentWithAttachments(@Param("assignmentId") long assignmentId);
+
+    @Query("""
+        SELECT a
+        FROM Assignment a
+        LEFT JOIN a.submissions s ON s.student.id = :studentId
+        LEFT JOIN s.grade g
+        WHERE a.module.course.id = :courseId
+        ORDER BY a.module.position, a.position
+        """)
+    List<Assignment> findAssignmentsByCourseAndStudent(@Param("courseId") long courseId,
+                                                       @Param("studentId") long studentId);
 
     @Query("""
         SELECT bla.id FROM BaseLessonAssignment bla

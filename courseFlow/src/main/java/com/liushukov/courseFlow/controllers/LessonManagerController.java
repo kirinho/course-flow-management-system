@@ -58,7 +58,7 @@ public class LessonManagerController {
     public ResponseEntity<Void> update(
             @PathVariable(value = "moduleId") Long moduleId,
             @PathVariable(value = "lessonId") Long lessonId,
-            @RequestPart(value = "item") LessonUpdateDto lessonUpdateDto,
+            @RequestPart(value = "item") @Valid LessonUpdateDto lessonUpdateDto,
             @RequestPart(value = "attachments", required = false) MultipartFile[] attachments
     ) {
         Optional<Module> module = moduleService.getModuleById(moduleId);

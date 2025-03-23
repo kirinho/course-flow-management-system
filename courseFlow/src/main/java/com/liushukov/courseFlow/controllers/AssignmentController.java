@@ -34,11 +34,12 @@ public class AssignmentController {
     public ResponseEntity<AssignmentResponseDto> assignmentOverview(
             Authentication authentication,
             @PathVariable(value = "assignmentId") Long assignmentId,
+            @RequestParam(value = "courseId") Long courseId,
             @RequestParam(value = "userId", required = false) Long userId
     ) {
         User user = userService.getUserFromAuthentication(authentication);
         Optional<Assignment> assignment = assignmentService.getAssignmentById(assignmentId);
-        if (user.isEnabled() && assignment.isPresent()) {
+        if (user.isEnabled() && assignment.isPresent() && assignment.get().getModule().getCourse().getId().equals(courseId)) {
             if (userId != null && assignment.get().getModule().getCourse().getUser().equals(user)) {
                 return ResponseEntity.status(HttpStatus.OK).body(assignmentService.getAssignmentOverview(assignmentId,
                         userId));

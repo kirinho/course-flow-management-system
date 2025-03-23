@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
@@ -23,6 +24,10 @@ const Login = () => {
         try {
             const response = await loginUser(data);
             localStorage.setItem('token', response.data);
+            const roleResponse = await axios.get('http://localhost:8080/users/me/role', {
+                headers: { 'Authorization': `Bearer ${response.data}` }
+            });
+            localStorage.setItem('role', roleResponse.data);
             setMessage('Success!');
             setTimeout(() => setMessage(null), 3000);
             navigate('/');
@@ -55,6 +60,10 @@ const Login = () => {
                 const googleUser = await googleLoginUser(credentialResponse.access_token);
                 const response = await loginOAuth2User(googleUser);
                 localStorage.setItem('token', response.data);
+                const roleResponse = await axios.get('http://localhost:8080/users/me/role', {
+                    headers: { 'Authorization': `Bearer ${response.data}` }
+                });
+                localStorage.setItem('role', roleResponse.data);
                 setMessage('Google login successful!');
                 setTimeout(() => setMessage(null), 3000);
                 navigate('/');

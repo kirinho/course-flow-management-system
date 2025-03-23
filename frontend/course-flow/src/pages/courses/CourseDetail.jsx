@@ -67,83 +67,85 @@ const CourseDetail = () => {
   }
 
   return (
-    <div className="container-fluid py-5">
-      <div className="container py-5">
-        <div className="row align-items-center">
-          <div className="col-lg-5">
-            {course.imageBase64 ? (
-              <img
-                className="img-fluid rounded mb-4 mb-lg-0"
-                src={`data:image/jpeg;base64,${course.imageBase64}`}
-                alt={course.name}
-              />
-            ) : (
-              <div
-                style={{
-                  width: "100%",
-                  height: "200px",
-                  backgroundColor: "#ddd",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: "8px",
-                  color: "#777",
-                }}
-              >
-                No Image Available
-              </div>
-            )}
-          </div>
-          <div className="col-lg-7">
-            <div className="text-left mb-4">
-              <h5 className="text-primary text-uppercase mb-3" style={{ letterSpacing: "5px" }}>
-                Course Details
-              </h5>
-              <h1>{course.name}</h1>
-            </div>
-            <p>{course.description}</p>
-            <p>
-              {course.enrolled ? (
-                <button className="btn btn-success" onClick={() => navigate(`/course/${id}/overview`)}>
-                  Start Learning!
-                </button>
+    <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+      <div className="container-fluid py-5">
+        <div className="container py-5">
+          <div className="row align-items-center">
+            <div className="col-lg-5">
+              {course.imageBase64 ? (
+                <img
+                  className="img-fluid rounded mb-4 mb-lg-0"
+                  src={`data:image/jpeg;base64,${course.imageBase64}`}
+                  alt={course.name}
+                />
               ) : (
-                <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-                  Enroll Now
-                </button>
+                <div
+                  style={{
+                    width: "100%",
+                    height: "200px",
+                    backgroundColor: "#ddd",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "8px",
+                    color: "#777",
+                  }}
+                >
+                  No Image Available
+                </div>
               )}
-            </p>
+            </div>
+            <div className="col-lg-7">
+              <div className="text-left mb-4">
+                <h5 className="text-primary text-uppercase mb-3" style={{ letterSpacing: "5px" }}>
+                  Course Details
+                </h5>
+                <h1>{course.name}</h1>
+              </div>
+              <p>{course.description}</p>
+              <p>
+                {course.enrolled ? (
+                  <button className="btn btn-success" onClick={() => navigate(`/course/${id}/overview`)}>
+                    Start Learning!
+                  </button>
+                ) : (
+                  <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+                    Enroll Now
+                  </button>
+                )}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Enter Enrollment Code</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group>
-              <Form.Label>Enrollment Code</Form.Label>
-              <Form.Control
-                type="text"
-                value={enrollmentCode}
-                onChange={(e) => setEnrollmentCode(e.target.value)}
-                maxLength={10}
-                placeholder="Enter code"
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleEnroll}>
-            Submit
-          </Button>
-        </Modal.Footer>
-      </Modal>
+        <Modal show={showModal} onHide={() => setShowModal(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Enter Enrollment Code</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form>
+              <Form.Group>
+                <Form.Label>Enrollment Code</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={enrollmentCode}
+                  onChange={(e) => setEnrollmentCode(e.target.value)}
+                  maxLength={10}
+                  placeholder="Enter code"
+                />
+              </Form.Group>
+            </Form>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleEnroll}>
+              Submit
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      </div>
     </div>
   );
 };

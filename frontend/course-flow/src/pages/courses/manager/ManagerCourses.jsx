@@ -92,79 +92,82 @@ const ManagerCourses = () => {
     }
 
     return (
-        <div className="container mt-5">
-            <div style={{ display: "flex", alignItems: "center" }}>
-                Courses /
-            </div>
-            <h2 className="mb-4">My Courses</h2>
-            {error && <div className="alert alert-danger">{error}</div>}
-            <div className="row">
-                {courses.map(course => (
-                    <div key={course.id} className="col-md-4">
-                        <div className="card">
-                            <Link to={`/manager/courses/${course.id}/modules`}>
-                                <img 
-                                    src={course.imageBase64 ? `data:image/jpeg;base64,${course.imageBase64}` : "https://via.placeholder.com/200"} 
-                                    alt={course.name} 
-                                    className="card-img-top" 
-                                    style={{ height: "200px", objectFit: "cover", cursor: "pointer" }}
-                                />
-                            </Link>
-                            <div className="card-body">
-                                <h5 className="card-title">{course.name}</h5>
-                                <h6 className="card-title">Enrollment code: {course.enrollmentCode}</h6>
-                                <Dropdown>
-                                    <Dropdown.Toggle variant="secondary" id="dropdown-basic">⋮</Dropdown.Toggle>
-                                    <Dropdown.Menu>
-                                        <Dropdown.Item onClick={() => handleOpenCourseModal(course)}>Edit</Dropdown.Item>
-                                        <Dropdown.Item onClick={() => { setCourseToDelete(course); setShowDeleteModal(true); }}>Delete</Dropdown.Item>
-                                    </Dropdown.Menu>
-                                </Dropdown>
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+
+            <div className="container mt-5">
+                <div style={{ display: "flex", alignItems: "center" }}>
+                    Courses /
+                </div>
+                <h2 className="mb-4">My Courses</h2>
+                {error && <div className="alert alert-danger">{error}</div>}
+                <div className="row">
+                    {courses.map(course => (
+                        <div key={course.id} className="col-md-4">
+                            <div className="card">
+                                <Link to={`/manager/courses/${course.id}/modules`}>
+                                    <img 
+                                        src={course.imageBase64 ? `data:image/jpeg;base64,${course.imageBase64}` : "https://via.placeholder.com/200"} 
+                                        alt={course.name} 
+                                        className="card-img-top" 
+                                        style={{ height: "200px", objectFit: "cover", cursor: "pointer" }}
+                                    />
+                                </Link>
+                                <div className="card-body">
+                                    <h5 className="card-title">{course.name}</h5>
+                                    <h6 className="card-title">Enrollment code: {course.enrollmentCode}</h6>
+                                    <Dropdown>
+                                        <Dropdown.Toggle variant="secondary" id="dropdown-basic">⋮</Dropdown.Toggle>
+                                        <Dropdown.Menu>
+                                            <Dropdown.Item onClick={() => handleOpenCourseModal(course)}>Edit</Dropdown.Item>
+                                            <Dropdown.Item onClick={() => { setCourseToDelete(course); setShowDeleteModal(true); }}>Delete</Dropdown.Item>
+                                        </Dropdown.Menu>
+                                    </Dropdown>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
+                <Button className="mt-4" onClick={() => handleOpenCourseModal()}>Add New Course</Button>
+
+                <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Confirm Delete</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        Are you sure you want to delete {courseToDelete?.name}?
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+                        <Button variant="danger" onClick={handleDelete}>Delete</Button>
+                    </Modal.Footer>
+                </Modal>
+
+                <Modal show={showCourseModal} onHide={() => setShowCourseModal(false)} size="lg">
+                    <Modal.Header closeButton>
+                        <Modal.Title>{editingCourse ? "Edit Course" : "Create Course"}</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form onSubmit={handleSubmit(onSubmit)}>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Course Name</Form.Label>
+                                <Form.Control type="text" placeholder="Enter course name" {...register("name", { required: true })} />
+                                {errors.name && <p className="text-danger">Course name is required</p>}
+                            </Form.Group>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Description</Form.Label>
+                                <Form.Control as="textarea" rows={4} placeholder="Enter course description" {...register("description", { required: true })} />
+                                {errors.description && <p className="text-danger">Description is required</p>}
+                            </Form.Group>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Course Image</Form.Label>
+                                {previewImage && <img src={previewImage} alt="Preview" className="img-fluid mb-2" style={{ maxWidth: "100%" }} />}
+                                <Form.Control type="file" {...register("image")} onChange={onFileChange} />
+                            </Form.Group>
+                            <Button type="submit" className="w-100">{editingCourse ? "Update" : "Create"} Course</Button>
+                        </Form>
+                    </Modal.Body>
+                </Modal>
             </div>
-            <Button className="mt-4" onClick={() => handleOpenCourseModal()}>Add New Course</Button>
-
-            <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Confirm Delete</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    Are you sure you want to delete {courseToDelete?.name}?
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
-                    <Button variant="danger" onClick={handleDelete}>Delete</Button>
-                </Modal.Footer>
-            </Modal>
-
-            <Modal show={showCourseModal} onHide={() => setShowCourseModal(false)} size="lg">
-                <Modal.Header closeButton>
-                    <Modal.Title>{editingCourse ? "Edit Course" : "Create Course"}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form onSubmit={handleSubmit(onSubmit)}>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Course Name</Form.Label>
-                            <Form.Control type="text" placeholder="Enter course name" {...register("name", { required: true })} />
-                            {errors.name && <p className="text-danger">Course name is required</p>}
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Description</Form.Label>
-                            <Form.Control as="textarea" rows={4} placeholder="Enter course description" {...register("description", { required: true })} />
-                            {errors.description && <p className="text-danger">Description is required</p>}
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Course Image</Form.Label>
-                            {previewImage && <img src={previewImage} alt="Preview" className="img-fluid mb-2" style={{ maxWidth: "100%" }} />}
-                            <Form.Control type="file" {...register("image")} onChange={onFileChange} />
-                        </Form.Group>
-                        <Button type="submit" className="w-100">{editingCourse ? "Update" : "Create"} Course</Button>
-                    </Form>
-                </Modal.Body>
-            </Modal>
         </div>
     );
 };

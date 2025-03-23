@@ -1,6 +1,7 @@
 package com.liushukov.courseFlow.dtos;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 public record LessonCreateDto(
@@ -11,6 +12,7 @@ public record LessonCreateDto(
         @Size(max = 255, message = "size for description should be up to 255 characters")
         String description,
         @NotNull(message = "position is mandatory")
+        @Positive(message = "position must be a positive number")
         Integer position,
         @NotNull(message = "content is mandatory")
         String content

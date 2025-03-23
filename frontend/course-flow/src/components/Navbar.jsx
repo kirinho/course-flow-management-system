@@ -1,25 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 const Navbar = () => {
     const navigate = useNavigate();
-    const [role, setRole] = useState(localStorage.getItem('role'));
+    const role = localStorage.getItem('role');
     const token = localStorage.getItem('token');
     const isAuthenticated = !!token;
-
-    useEffect(() => {
-        if (!role && token) {
-            axios.get('http://localhost:8080/users/me/role', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            })
-            .then(response => {
-                localStorage.setItem('role', response.data);
-                setRole(response.data);
-            })
-            .catch(error => console.error('Failed to fetch role', error));
-        }
-    }, [role, token]);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -50,7 +36,6 @@ const Navbar = () => {
                                 <Link className="nav-item nav-link active" to="/">Home</Link>
                                 <Link className="nav-item nav-link" to="/about">About</Link>
                                 <Link className="nav-item nav-link" to="/courses">Courses</Link>
-                                <Link className="nav-item nav-link" to="/contact">Contact</Link>
                                 {role === 'MANAGER' && (
                                     <Link className="nav-item nav-link" to="/manager/courses">Manage Courses</Link>
                                 )}

@@ -78,6 +78,8 @@ const ManagerModules = () => {
     }
 
     return (
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+
         <div className="container mt-5">
             <div style={{ display: "flex", alignItems: "center" }}>
                 <Link to="/manager/courses" style={{ fontWeight: "bold", color: "#007bff", textDecoration: "none" }}>
@@ -141,6 +143,7 @@ const ManagerModules = () => {
                     </Form>
                 </Modal.Body>
             </Modal>
+        </div>
         </div>
     );
 };
