@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useParams, useNavigate } from "react-router-dom";
-import { Card, Button, Modal, Form, Dropdown } from "react-bootstrap";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { Card, Button, Modal, Form, Dropdown, OverlayTrigger, Tooltip } from "react-bootstrap";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { ToastContainer, toast, Bounce } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const AssignmentOverview = () => {
   const { courseId, assignmentId } = useParams();
@@ -17,11 +19,13 @@ const AssignmentOverview = () => {
   const [files, setFiles] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [hasAccess, setHasAccess] = useState(null);
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
 
   useEffect(() => {
+    if (!token || role !== "STUDENT") return;
     const checkAccess = async () => {
       try {
-        const token = localStorage.getItem("token");
         const response = await axios.get(`http://localhost:8080/enroll/info/${courseId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -40,10 +44,10 @@ const AssignmentOverview = () => {
   }, [courseId, navigate]);
 
   useEffect(() => {
+    if (!token || role !== "STUDENT") return;
     if (hasAccess === true) {
       const fetchAssignment = async () => {
         try {
-          const token = localStorage.getItem("token");
           const response = await axios.get(`http://localhost:8080/assignment/${assignmentId}/overview?courseId=${courseId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -54,7 +58,20 @@ const AssignmentOverview = () => {
             setTextSubmission(response.data.submission.textSubmission || "");
           }
         } catch (error) {
-          console.error("Error fetching assignment overview", error);
+          const errorMessage = error.response && error.response.data && error.response.data.message
+              ? error.response.data.message
+              : 'Error fetching assignment overview: Internal Server Error';
+          toast.error(errorMessage, {
+              position: "bottom-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: false,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+              transition: Bounce,
+              });
         } finally {
           setIsLoading(false);
         }
@@ -68,23 +85,38 @@ const AssignmentOverview = () => {
 
   const handleDownload = async (fileId) => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`http://localhost:8080/attachment/${fileId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        responseType: "json",
-      });
-      const { fileName, fileData } = response.data;
-      const byteCharacters = atob(fileData);
-      const byteNumbers = new Array(byteCharacters.length).fill(0).map((_, i) => byteCharacters.charCodeAt(i));
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray]);
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = fileName;
-      link.click();
+        const response = await axios.get(`http://localhost:8080/attachment/${fileId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            responseType: 'json',
+        });
+
+        const { fileName, fileData } = response.data;
+
+        const byteCharacters = atob(fileData);
+        const byteNumbers = new Array(byteCharacters.length).fill(0).map((_, i) => byteCharacters.charCodeAt(i));
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray]);
+
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
     } catch (error) {
-      console.error("Error downloading the file", error);
-    }
+        const errorMessage = error.response && error.response.data && error.response.data.message
+            ? error.response.data.message
+            : 'Failed to download file: Internal Server Error';
+        toast.error(errorMessage, {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+            });
+      }
   };
 
   const handleFileChange = (e) => {
@@ -93,7 +125,6 @@ const AssignmentOverview = () => {
 
   const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem("token");
       const formData = new FormData();
       formData.append("textSubmission", textSubmission);
       files.forEach((file) => formData.append("attachments", file));
@@ -102,7 +133,7 @@ const AssignmentOverview = () => {
         ? `http://localhost:8080/submission/${assignment.submission.id}/update`
         : `http://localhost:8080/submission/assignment/${assignmentId}/create`;
 
-      await axios({
+      const response = await axios({
         method: assignment.submission ? "patch" : "post",
         url,
         headers: { Authorization: `Bearer ${token}` },
@@ -110,22 +141,116 @@ const AssignmentOverview = () => {
       });
 
       setShowModal(false);
-      window.location.reload();
+      if (response.status === 201) {
+        toast.success("Submission created successfully!", {
+          position: "bottom-right",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        });
+      } else if (response.status === 200) {
+        toast.success("Submission updated successfully!", {
+          position: "bottom-right",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        });
+      }
+      setTimeout(() => {
+          navigate(0);
+      }, 1500);
     } catch (error) {
-      console.error("Error submitting the assignment", error);
+        const errorMessage =
+        error.response && error.response.data && error.response.data.message
+          ? error.response.data.message
+          : "Error submitting the submission: Internal Server Error";
+
+      if (error.response && error.response.status === 400) {
+        toast.error("Invalid submission: please provide text or attachments.", {
+          position: "bottom-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        });
+      } else if (error.response && error.response.status === 404) {
+        toast.error("Submission not found!", {
+          position: "bottom-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        });
+      } else {
+        toast.error(errorMessage, {
+          position: "bottom-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        });
+      }
     }
   };
 
   const handleDeleteConfirm = async () => {
     try {
-      const token = localStorage.getItem("token");
       await axios.delete(`http://localhost:8080/submission/${assignment.submission.id}/delete`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setShowDeleteConfirm(false);
-      window.location.reload();
+      toast.success('Submission has been successfully deleted', {
+          position: "bottom-right",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+          });
+          setTimeout(() => {
+              navigate(0);
+        }, 1500);
     } catch (error) {
       console.error("Error deleting submission", error);
+      const errorMessage = error.response && error.response.data && error.response.data.message
+        ? error.response.data.message
+        : 'Error deleting submission: Internal Server Error';
+      toast.error(errorMessage, {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+        });
     }
   };
 
@@ -146,15 +271,57 @@ const AssignmentOverview = () => {
     }
   };
 
-  if (isLoading) return <div className="text-center text-lg">Loading...</div>;
-  if (hasAccess === false) return <div className="text-center text-danger">Access denied.</div>;
-  if (!assignment)
-    return <div className="text-center text-danger">Assignment not found.</div>;
+  if (!token) {
+    return (
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>You need to be authenticated to view the assignment.</h2>;
+        </div>)
+  }
+  if (role !== "STUDENT") {
+      return (
+          <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+              <h2>You do not have permission to view this page.</h2>;
+          </div>)
+  }
+
+  if (isLoading) {
+    return (
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>Loading...</h2>;
+        </div>)
+  }
+  if (hasAccess === false) {
+    return (
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>Access denied.</h2>;
+        </div>)
+  }
+  if (!assignment) {
+    return (
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>Assignment not found.</h2>;
+        </div>)
+  }
 
   return (
     <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
 
       <div className="container py-5">
+        <div className="mb-4 pb-2" style={{ borderBottom: "1px solid #ddd" }}>
+            <Link to={`/courses/${courseId}`} style={{ fontWeight: "bold", color: "#007bff", textDecoration: "none" }}>
+              Course detail
+            </Link>
+            <span style={{ margin: "0 8px" }}>/</span>
+            <Link to={`/course/${courseId}/overview`} style={{ fontWeight: "bold", color: "#007bff", textDecoration: "none" }}>
+              Course Overview
+            </Link>
+            <span style={{ margin: "0 8px" }}>/</span>
+            <span style={{ color: "#6c757d" }}>Assignment overview</span>
+            <span style={{ margin: "0 8px" }}>/</span>
+            <Link to={`/course/${courseId}/grades`} style={{ fontWeight: "bold", color: "#007bff", textDecoration: "none" }}>
+              Grades
+            </Link>
+          </div>
         <div className="row">
           <div className="col-12 mb-4">
             <Card className="bg-light border shadow-sm p-4 rounded-lg">
@@ -221,7 +388,7 @@ const AssignmentOverview = () => {
             <div className="justify-content-between align-items-center">
               <h3 className="text-dark">Grade</h3>
               <p><strong>Score:</strong> {assignment.submission.grade.score}</p>
-              <p><strong>Feedback:</strong>  {assignment.submission.grade.feedback}</p>
+              <p><strong>Feedback:</strong>  {assignment.submission.grade.feedback || "No feedback."}</p>
               <p><strong>Manager:</strong> {assignment.submission.grade.managerFullName}</p>
             </div>
           </Card>
@@ -239,10 +406,33 @@ const AssignmentOverview = () => {
             <Modal.Body>
               <Form.Group className="mb-3">
                 <Form.Label>Text Submission</Form.Label>
+                <OverlayTrigger
+                  placement="right"
+                  trigger="click"
+                  overlay={<Tooltip id="tooltip-description">Supports **Markdown** formatting:<br />
+                      <a href="https://www.markdownguide.org/basic-syntax/" target="_blank" rel="noopener noreferrer">
+                          Click the link to familiarize yourself with structure
+                      </a>
+                  </Tooltip>}
+                  >
+                      <span style={{ borderRadius: "50%", backgroundColor: "#f0f0f0", padding: "4px 8px", cursor: "pointer", marginLeft: "8px" }}>
+                      i
+                      </span>
+                  </OverlayTrigger>
                 <Form.Control as="textarea" value={textSubmission} onChange={(e) => setTextSubmission(e.target.value)} />
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>Attachments</Form.Label>
+                <OverlayTrigger
+                    placement="right"
+                    overlay={<Tooltip id="tooltip-description">Upload files: '.doc', 'docx', '.pdf', '.xsl', 'xslx'.<br />
+                    Note: during update your files will be appended to your current files!
+                    </Tooltip>}
+                >
+                    <span style={{ borderRadius: "50%", backgroundColor: "#f0f0f0", padding: "4px 8px", cursor: "pointer", marginLeft: "8px" }}>
+                    i
+                    </span>
+                </OverlayTrigger>
                 <Form.Control type="file" multiple onChange={handleFileChange} />
               </Form.Group>
             </Modal.Body>
@@ -263,6 +453,7 @@ const AssignmentOverview = () => {
             </Modal.Footer>
           </Modal>
       </div>
+      <ToastContainer />
     </div>
   );
 };

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { ToastContainer, toast, Bounce } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
-  const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState("id");
   const [orderBy, setOrderBy] = useState("asc");
   const token = localStorage.getItem("token");
@@ -21,10 +22,7 @@ const Courses = () => {
             Authorization: `Bearer ${token}`,
           },
           params: {
-            sortBy: sortBy,
-            orderBy: orderBy,
-            pageNumber: 0,
-            pageSize: 20,
+            sortBy: sortBy, orderBy: orderBy
           },
         });
         setCourses(response.data);
@@ -51,7 +49,17 @@ const Courses = () => {
         } else {
           errorMessage = "No response was received from the server.";
         }
-        setError(errorMessage);
+        toast.error(errorMessage, {
+            position: "bottom-right",
+            autoClose: 4000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+            });
       }
     };
 
@@ -60,18 +68,9 @@ const Courses = () => {
 
   if (!token) {
     return (
-      <div className="d-flex align-items-start justify-content-center vh-100">
-        <div className="container">
-          <div className="row justify-content-center">
-            <div className="col-md-6">
-              <div className="text-center" style={{ transform: "translateY(-1%)" }}>
-                <h2>You need to be authenticated to view the courses.</h2>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>You need to be authenticated to view the courses.</h2>;
+        </div>)
   }
 
   return (
@@ -85,7 +84,6 @@ const Courses = () => {
             <h1>Explore Top Subjects</h1>
           </div>
           
-          {/* Sort and Order controls */}
           <div className="d-flex justify-content-center mb-4">
             <div className="mr-3">
               <label>Sort by:</label>
@@ -112,7 +110,6 @@ const Courses = () => {
             </div>
           </div>
 
-          {error && <div className="alert alert-danger text-center">{error}</div>}
           <div className="row">
             {courses.map((course) => (
               <div key={course.id} className="col-lg-3 col-md-6 mb-4">
@@ -160,6 +157,7 @@ const Courses = () => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

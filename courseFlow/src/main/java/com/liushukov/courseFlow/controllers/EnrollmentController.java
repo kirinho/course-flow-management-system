@@ -65,8 +65,22 @@ public class EnrollmentController {
 
     @DeleteMapping(path = "/cancel/{courseId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> cancel(Authentication authentication, @PathVariable(value = "courseId") Long courseId) {
-        User user = userService.getUserFromAuthentication(authentication);
+    public ResponseEntity<Void> cancel(
+            Authentication authentication,
+            @PathVariable(value = "courseId") Long courseId,
+            @RequestParam(value = "userId", required = false) Long userId
+    ) {
+        User user;
+        if (userId != null) {
+            Optional<User> student = userService.getUserById(userId);
+            if (student.isPresent()) {
+                user = student.get();
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+        } else {
+            user = userService.getUserFromAuthentication(authentication);
+        }
         Optional<Course> course = courseService.getCourseById(courseId);
         if (user.isEnabled() && course.isPresent()) {
             Optional<Enrollment> enrollment = enrollmentService.getEnrollmentByUserAndCourse(user, course.get());

@@ -7,6 +7,8 @@ import { loginUser, googleLoginUser, loginOAuth2User } from '../api/auth';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import google from '../assets/img/google.jpg'
+import { ToastContainer, toast, Bounce } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const validationSchema = Yup.object().shape({
     email: Yup.string().required('Email is mandatory').email('Invalid email'),
@@ -15,7 +17,6 @@ const validationSchema = Yup.object().shape({
 
 const Login = () => {
     const navigate = useNavigate();
-    const [message, setMessage] = useState(null);
     const { register, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(validationSchema)
     });
@@ -28,9 +29,20 @@ const Login = () => {
                 headers: { 'Authorization': `Bearer ${response.data}` }
             });
             localStorage.setItem('role', roleResponse.data);
-            setMessage('Success!');
-            setTimeout(() => setMessage(null), 3000);
-            navigate('/');
+            toast.success('Success! Redirecting to the home page', {
+                position: "bottom-right",
+                autoClose: 1000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
+            setTimeout(() => {
+                navigate('/');
+            }, 1500);
         } catch (error) {
             let errorMessage = 'There was an error. Please try again.';
             if (error.response) {
@@ -49,8 +61,17 @@ const Login = () => {
             } else {
                 errorMessage = 'Request for an installation error.';
             }
-            setMessage(errorMessage);
-            setTimeout(() => setMessage(null), 3000);
+            toast.error(errorMessage, {
+                position: "bottom-right",
+                autoClose: 4000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
         }
     };
 
@@ -64,8 +85,6 @@ const Login = () => {
                     headers: { 'Authorization': `Bearer ${response.data}` }
                 });
                 localStorage.setItem('role', roleResponse.data);
-                setMessage('Google login successful!');
-                setTimeout(() => setMessage(null), 3000);
                 navigate('/');
             } catch (error) {
                 let errorMessage = 'An error occurred while signing in to Google.';
@@ -82,14 +101,31 @@ const Login = () => {
                 } else {
                     errorMessage = 'Error setting up Google login.';
                 }
-                setMessage(errorMessage);
-                setTimeout(() => setMessage(null), 3000);
+                toast.error(errorMessage, {
+                    position: "bottom-right",
+                    autoClose: 4000,
+                    hideProgressBar: false,
+                    closeOnClick: false,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "light",
+                    transition: Bounce,
+                    });
             }
         },
         onError: (error) => {
-            console.error("Google login error:", error);
-            setMessage('Google login failed.');
-            setTimeout(() => setMessage(null), 3000);
+            toast.error(error, {
+                position: "bottom-right",
+                autoClose: 4000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
         },
     });
 
@@ -111,11 +147,6 @@ const Login = () => {
                                 </div>
                                 <button type="submit" className="btn btn-primary w-100 py-2">Login</button>
                             </form>
-                            {message && (
-                                <div className="mt-3 alert alert-danger">
-                                    {message}
-                                </div>
-                            )}
                             <button onClick={() => googleLogin()} className="btn btn-light w-100 py-2 d-flex align-items-center justify-content-center border mt-3">
                                 <img src={google}
                                      alt="Google Logo" 
@@ -127,6 +158,7 @@ const Login = () => {
                     </div>
                 </div>
             </div>
+            <ToastContainer />
         </div>
     );
 };

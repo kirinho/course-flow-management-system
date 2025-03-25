@@ -3,6 +3,8 @@ import axios from "axios";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { Card } from "react-bootstrap";
 import { FaBook, FaTasks } from "react-icons/fa";
+import { ToastContainer, toast, Bounce } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const CourseOverview = () => {
   const { id } = useParams();
@@ -10,12 +12,13 @@ const CourseOverview = () => {
   const [course, setCourse] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(null);
+  const token = localStorage.getItem("token");
   const role = localStorage.getItem('role');
 
   useEffect(() => {
+    if (!token) return;
     const checkEnrollment = async () => {
       try {
-        const token = localStorage.getItem("token");
         const response = await axios.get(`http://localhost:8080/enroll/info/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -34,18 +37,31 @@ const CourseOverview = () => {
   }, [id]);
 
   useEffect(() => {
+    if (!token) return;
     if (hasAccess === false) {
       setIsLoading(false);
     } else if (hasAccess === true) {
       const fetchCourseOverview = async () => {
         try {
-          const token = localStorage.getItem("token");
           const response = await axios.get(`http://localhost:8080/courses/${id}/overview`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           setCourse(response.data);
         } catch (error) {
-          console.error("Error fetching course overview", error);
+          const errorMessage = error.response && error.response.data && error.response.data.message
+              ? error.response.data.message
+              : 'Error fetching course overview: Internal Server Error';
+          toast.error(errorMessage, {
+              position: "bottom-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: false,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+              transition: Bounce,
+              });
         } finally {
           setIsLoading(false);
         }
@@ -55,13 +71,45 @@ const CourseOverview = () => {
     }
   }, [hasAccess, id]);
 
-  if (isLoading) return <div className="text-center text-lg">Loading...</div>;
-  if (hasAccess === false) return <div className="text-center text-danger">Access denied.</div>;
-  if (!course) return <div className="text-center text-danger">Course not found.</div>;
+  if (!token) {
+    return (
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>You need to be authenticated to view the courses.</h2>;
+        </div>)
+  }
+  if (isLoading) {
+    return (
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>Loading...</h2>;
+        </div>)
+  }
+  if (hasAccess === false) {
+    return (
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>Access denied.</h2>;
+        </div>)
+  }
+  if (!course) {
+    return (
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>Course not found.</h2>;
+        </div>)
+  }
 
   return (
     <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
       <div className="container py-5">
+        <div className="mb-4 pb-2" style={{ borderBottom: "1px solid #ddd" }}>
+          <Link to={`/courses/${id}`} style={{ fontWeight: "bold", color: "#007bff", textDecoration: "none" }}>
+            Course detail
+          </Link>
+          <span style={{ margin: "0 8px" }}>/</span>
+          <span style={{ color: "#6c757d" }}>Course overview</span>
+          <span style={{ margin: "0 8px" }}>/</span>
+          <Link to={`/course/${id}/grades`} style={{ fontWeight: "bold", color: "#007bff", textDecoration: "none" }}>
+            Grades
+          </Link>
+        </div>
         <div className="text-center mb-5">
           {course.image ? (
             <img
@@ -134,6 +182,7 @@ const CourseOverview = () => {
           )}
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

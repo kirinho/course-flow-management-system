@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Button, Modal, Form, Alert } from "react-bootstrap";
+import { Button, Modal, Form, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { useForm } from "react-hook-form";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { ToastContainer, toast, Bounce } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ManagerItems = () => {
     const { courseId, moduleId } = useParams();
     const [moduleName, setModuleName] = useState("");
     const [items, setItems] = useState([]);
-    const [error, setError] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showItemModal, setShowItemModal] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
@@ -18,25 +19,49 @@ const ManagerItems = () => {
     const [editingItem, setEditingItem] = useState(null);
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
     const { register, handleSubmit, setValue, formState: { errors }, reset } = useForm();
     const [attachments, setAttachments] = useState([]);
 
     useEffect(() => {
-        if (!token) return;
+        if (!token || role !== "MANAGER") return;
         axios.get(`http://localhost:8080/manager/modules/module/${moduleId}`, {
             headers: { Authorization: `Bearer ${token}` }
         })
         .then(response => setModuleName(response.data))
-        .catch(() => setError("Error fetching module details."));
+        .catch((error) => {
+            toast.error(`Failed to fetch module details: ${error.response?.data?.message || "Internal server error"}`, {
+                position: "bottom-right",
+                autoClose: 4000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+            });
+        });
 
         axios.get(`http://localhost:8080/manager/modules/overview/${moduleId}/all`, { headers: { Authorization: `Bearer ${token}` } })
             .then(response => setItems(response.data))
-            .catch(() => setError("Error fetching items."));
+            .catch((error) => {
+                toast.error(`Failed to fetch items: ${error.response?.data?.message || "Internal server error"}`, {
+                    position: "bottom-right",
+                    autoClose: 4000,
+                    hideProgressBar: false,
+                    closeOnClick: false,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "light",
+                    transition: Bounce,
+                });
+            });
     }, [token, moduleId]);
 
     const handleDownload = async (fileId) => {
         try {
-            const token = localStorage.getItem("token");
             const response = await axios.get(`http://localhost:8080/attachment/${fileId}`, {
                 headers: { Authorization: `Bearer ${token}` },
                 responseType: 'json',
@@ -54,7 +79,20 @@ const ManagerItems = () => {
             link.download = fileName;
             link.click();
         } catch (error) {
-            console.error("Error downloading the file", error);
+            const errorMessage = error.response && error.response.data && error.response.data.message
+                ? error.response.data.message
+                : 'Failed to download file: Internal Server Error';
+            toast.error(errorMessage, {
+                position: "bottom-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
         }
     };
 
@@ -84,7 +122,17 @@ const ManagerItems = () => {
         } else if (item.type === 'ASSIGNMENT') {
             deleteUrl = `http://localhost:8080/manager/assignments/delete/${item.id}`;
         } else {
-            setError("Invalid item type for deletion.");
+            toast.error('Invalid item type for deletion.', {
+                position: "bottom-right",
+                autoClose: 4000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
             return;
         }
     
@@ -95,8 +143,29 @@ const ManagerItems = () => {
     
             setItems(items.filter(existingItem => existingItem.id !== item.id));
             setShowDeleteModal(false);
+            toast.success('Item has been successfully deleted!', {
+                position: "bottom-right",
+                autoClose: 1000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
         } catch {
-            setError("Failed to delete item.");
+            toast.error('Failed to delete item.', {
+                position: "bottom-right",
+                autoClose: 4000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
         }
     };        
 
@@ -149,10 +218,38 @@ const ManagerItems = () => {
             });
     
             setShowItemModal(false);
-            navigate(0);
+            const successMessage = editingItem
+                ? 'Item has been updated successfully!' 
+                : 'Item has been created successfully!';
+            toast.success(successMessage, {
+                position: "bottom-right",
+                autoClose: 1000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
+            setTimeout(() => {
+                navigate(0);
+            }, 1500);
         } catch (error) {
-            console.error("Error submitting item:", error);
-            setError("Failed to submit item.");
+            const errorMessage = error.response && error.response.data && error.response.data.message
+                ? error.response.data.message
+                : 'Failed to submit item.';
+            toast.error(errorMessage, {
+                position: "bottom-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
         }
     };
 
@@ -161,7 +258,16 @@ const ManagerItems = () => {
     };
 
     if (!token) {
-        return <h2>You need to be authenticated to view the items.</h2>;
+        return (
+            <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+                <h2>You need to be authenticated to view the items in the module.</h2>;
+            </div>)
+    }
+    if (role !== "MANAGER") {
+        return (
+            <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+                <h2>You do not have permission to view this page.</h2>;
+            </div>)
     }
 
     return (
@@ -180,7 +286,6 @@ const ManagerItems = () => {
                     <span style={{ color: "#6c757d" }}>Items</span>
                 </div>
                 <h2 className="mb-4">Items for module - {moduleName || "Loading..."}</h2>
-                {error && <Alert variant="danger">{error}</Alert>}
                 <ul className="list-group">
                     {items.map(item => (
                         <li key={item.id} className="list-group-item d-flex justify-content-between align-items-start mb-3 shadow-sm">
@@ -262,39 +367,90 @@ const ManagerItems = () => {
                         <Form onSubmit={handleSubmit(onSubmit)}>
                             <Form.Group className="mb-3">
                                 <Form.Label>Item Title</Form.Label>
+                                <OverlayTrigger
+                                    placement="right"
+                                    overlay={<Tooltip id="tooltip-description">Enter up to 255 characters.</Tooltip>}
+                                >
+                                    <span style={{ borderRadius: "50%", backgroundColor: "#f0f0f0", padding: "4px 8px", cursor: "pointer", marginLeft: "8px" }}>
+                                    i
+                                    </span>
+                                </OverlayTrigger>
                                 <Form.Control type="text" {...register("title", { required: true })} />
                                 {errors.title && <p className="text-danger">Item title is required</p>}
                             </Form.Group>
                             <Form.Group className="mb-3">
                                 <Form.Label>Description</Form.Label>
+                                <OverlayTrigger
+                                    placement="right"
+                                    overlay={<Tooltip id="tooltip-description">Enter up to 255 characters.</Tooltip>}
+                                >
+                                    <span style={{ borderRadius: "50%", backgroundColor: "#f0f0f0", padding: "4px 8px", cursor: "pointer", marginLeft: "8px" }}>
+                                    i
+                                    </span>
+                                </OverlayTrigger>
                                 <Form.Control as="textarea" rows={4} {...register("description", { required: true })} />
                                 {errors.description && <p className="text-danger">Description is required</p>}
                             </Form.Group>
                             <Form.Group className="mb-3">
                                 <Form.Label>Position</Form.Label>
+                                <OverlayTrigger
+                                    placement="right"
+                                    overlay={<Tooltip id="tooltip-description">Enter a positive number for an item position in module.</Tooltip>}
+                                >
+                                    <span style={{ borderRadius: "50%", backgroundColor: "#f0f0f0", padding: "4px 8px", cursor: "pointer", marginLeft: "8px" }}>
+                                    i
+                                    </span>
+                                </OverlayTrigger>
                                 <Form.Control type="number" {...register("position", { required: true })} />
                                 {errors.position && <p className="text-danger">Position is required</p>}
                             </Form.Group>
         
-                            {/* Якщо це урок (LESSON), додаємо поле для content */}
                             {itemType === 'LESSON' && (
                                 <Form.Group className="mb-3">
                                     <Form.Label>Content</Form.Label>
+                                    <OverlayTrigger
+                                    placement="right"
+                                    trigger="click"
+                                    overlay={<Tooltip id="tooltip-description">Supports **Markdown** formatting:<br />
+                                        <a href="https://www.markdownguide.org/basic-syntax/" target="_blank" rel="noopener noreferrer">
+                                            Click the link to familiarize yourself with structure
+                                        </a>
+                                    </Tooltip>}
+                                    >
+                                        <span style={{ borderRadius: "50%", backgroundColor: "#f0f0f0", padding: "4px 8px", cursor: "pointer", marginLeft: "8px" }}>
+                                        i
+                                        </span>
+                                    </OverlayTrigger>
                                     <Form.Control as="textarea" rows={4} {...register("content", { required: true })} />
                                     {errors.content && <p className="text-danger">Content is required</p>}
                                 </Form.Group>
                             )}
         
-                            {/* Якщо це завдання (ASSIGNMENT), додаємо поля для dueDate і maxScore */}
                             {itemType === 'ASSIGNMENT' && (
                                 <>
                                     <Form.Group className="mb-3">
                                         <Form.Label>Due Date</Form.Label>
+                                        <OverlayTrigger
+                                            placement="right"
+                                            overlay={<Tooltip id="tooltip-description">Choose the appropriate date.</Tooltip>}
+                                        >
+                                            <span style={{ borderRadius: "50%", backgroundColor: "#f0f0f0", padding: "4px 8px", cursor: "pointer", marginLeft: "8px" }}>
+                                            i
+                                            </span>
+                                        </OverlayTrigger>
                                         <Form.Control type="date" {...register("dueDate", { required: true })} />
                                         {errors.dueDate && <p className="text-danger">Due date is required</p>}
                                     </Form.Group>
                                     <Form.Group className="mb-3">
                                         <Form.Label>Max Score</Form.Label>
+                                        <OverlayTrigger
+                                            placement="right"
+                                            overlay={<Tooltip id="tooltip-description">Enter a positive max score for this assignment.</Tooltip>}
+                                        >
+                                            <span style={{ borderRadius: "50%", backgroundColor: "#f0f0f0", padding: "4px 8px", cursor: "pointer", marginLeft: "8px" }}>
+                                            i
+                                            </span>
+                                        </OverlayTrigger>
                                         <Form.Control type="number" {...register("maxScore", { required: true })} />
                                         {errors.maxScore && <p className="text-danger">Max score is required</p>}
                                     </Form.Group>
@@ -303,6 +459,16 @@ const ManagerItems = () => {
         
                             <Form.Group className="mb-3">
                                 <Form.Label>Attachments</Form.Label>
+                                <OverlayTrigger
+                                    placement="right"
+                                    overlay={<Tooltip id="tooltip-description">Upload files: '.doc', 'docx', '.pdf', '.xsl', 'xslx'.<br />
+                                    Note: your previos files will be removed during updating the files, so keep in mind!
+                                    </Tooltip>}
+                                >
+                                    <span style={{ borderRadius: "50%", backgroundColor: "#f0f0f0", padding: "4px 8px", cursor: "pointer", marginLeft: "8px" }}>
+                                    i
+                                    </span>
+                                </OverlayTrigger>
                                 <Form.Control type="file" multiple onChange={handleFileChange} />
                                 {attachments.length > 0 && (
                                     <ul>
@@ -330,6 +496,7 @@ const ManagerItems = () => {
                     </Modal.Footer>
                 </Modal>
             </div>
+            <ToastContainer />
         </div>
     );
 };

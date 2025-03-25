@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { Modal, Button, Form } from "react-bootstrap";
+import { ToastContainer, toast, Bounce } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const CourseDetail = () => {
   const { id } = useParams();
@@ -10,11 +12,12 @@ const CourseDetail = () => {
   const [showModal, setShowModal] = useState(false);
   const [enrollmentCode, setEnrollmentCode] = useState("");
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
+    if (!token) return;
     const fetchCourse = async () => {
       try {
-        const token = localStorage.getItem("token");
         const response = await axios.get(`http://localhost:8080/courses/course/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -23,7 +26,18 @@ const CourseDetail = () => {
         setCourse(response.data);
         setIsLoading(false);
       } catch (error) {
-        console.error("Error fetching course details", error);
+        const errorMessage = error.response?.data?.message || 'Internal server error';
+        toast.error(`Error fetching course details: ${errorMessage}`, {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+        });
         setIsLoading(false);
       }
     };
@@ -32,7 +46,6 @@ const CourseDetail = () => {
   }, [id]);
 
   const handleEnroll = async () => {
-    const token = localStorage.getItem("token");
     try {
       const response = await axios.post(
         "http://localhost:8080/enroll",
@@ -49,21 +62,54 @@ const CourseDetail = () => {
       );
 
       if (response.status === 204) {
-        alert("Enrollment successful! Redirecting to learning page...");
-        navigate(`/course/${id}/learning`);
+        toast.success('Enrollment successful! Redirecting to learning page...', {
+          position: "bottom-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+          });
+          setTimeout(() => {
+            navigate(`/course/${id}/overview`);
+        }, 4000); 
       }
     } catch (error) {
-      console.error("Error enrolling in course", error);
-      alert("Failed to enroll. Please check your enrollment code.");
+      const errorMessage = error.response?.data?.message || 'Please check your enrollment code.';
+      toast.error(`Error enrolling to course: ${errorMessage}`, {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+      });
     }
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
+  if (!token) {
+    return (
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>You need to be authenticated to view the course.</h2>;
+        </div>)
   }
-
+  if (isLoading) {
+    return (
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>Loading...</h2>;
+        </div>)
+  }
   if (!course) {
-    return <div>Course not found.</div>;
+    return (
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>Course not found.</h2>;
+        </div>)
   }
 
   return (
@@ -146,6 +192,7 @@ const CourseDetail = () => {
           </Modal.Footer>
         </Modal>
       </div>
+      <ToastContainer />
     </div>
   );
 };

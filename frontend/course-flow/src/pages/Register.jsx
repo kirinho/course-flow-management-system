@@ -4,6 +4,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 import { registerUser } from '../api/auth';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast, Bounce } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const validationSchema = Yup.object().shape({
     fullName: Yup.string().required('Full name is mandatory').min(2).max(100),
@@ -13,7 +15,6 @@ const validationSchema = Yup.object().shape({
 
 const Register = () => {
     const navigate = useNavigate();
-    const [message, setMessage] = useState(null);
     const { register, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(validationSchema)
     });
@@ -21,16 +22,38 @@ const Register = () => {
     const onSubmit = async (data) => {
         try {
             await registerUser(data);
-            setMessage('Registration is successful, check your email to verify your account');
-            setTimeout(() => setMessage(null), 10000);
-            navigate('/login');
+            toast.success('Registration is successful, check your email to verify your account!', {
+                position: "bottom-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
+            setTimeout(() => {
+                navigate('/login');
+            }, 5500);
         } catch (error) {
             let errorMessage = 'Registration error, please try again.';
             if (error.response && error.response.status === 409) {
                 errorMessage = 'A user with this email already exists.';
+            } else if (error.request) {
+                errorMessage = 'No response was received from the server.';
             }
-            setMessage(errorMessage);
-            setTimeout(() => setMessage(null), 3000);
+            toast.error(errorMessage, {
+                position: "bottom-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
         }
     };
 
@@ -56,15 +79,11 @@ const Register = () => {
                                 </div>
                                 <button type="submit" className="btn btn-primary w-100 py-2">Register</button>
                             </form>
-                            {message && (
-                                <div className="mt-3 alert alert-danger">
-                                    {message}
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
             </div>
+            <ToastContainer />
         </div>
     );    
 };

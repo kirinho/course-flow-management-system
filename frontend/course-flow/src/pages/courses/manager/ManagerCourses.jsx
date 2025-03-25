@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import { Dropdown, Button, Modal, Form, Alert } from "react-bootstrap";
+import { Dropdown, Button, Modal, Form, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { useForm } from "react-hook-form";
+import { ToastContainer, toast, Bounce } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ManagerCourses = () => {
     const [courses, setCourses] = useState([]);
-    const [error, setError] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showCourseModal, setShowCourseModal] = useState(false);
     const [courseToDelete, setCourseToDelete] = useState(null);
@@ -14,13 +15,26 @@ const ManagerCourses = () => {
     const [previewImage, setPreviewImage] = useState(null);
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
     const { register, handleSubmit, setValue, formState: { errors }, reset } = useForm();
 
     useEffect(() => {
-        if (!token) return;
+        if (!token || role !== "MANAGER") return;
         axios.get("http://localhost:8080/manager/courses/all", { headers: { Authorization: `Bearer ${token}` } })
             .then(response => setCourses(response.data))
-            .catch(() => setError("Error fetching courses."));
+            .catch((error) => {
+                toast.error(`Failed to fetch courses: ${error.response?.data?.message || "Internal server error"}`, {
+                    position: "bottom-right",
+                    autoClose: 4000,
+                    hideProgressBar: false,
+                    closeOnClick: false,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "light",
+                    transition: Bounce,
+                });
+            });
     }, [token]);
 
     const handleDelete = async () => {
@@ -29,8 +43,32 @@ const ManagerCourses = () => {
             await axios.delete(`http://localhost:8080/manager/courses/course/delete/${courseToDelete.id}`, { headers: { Authorization: `Bearer ${token}` } });
             setCourses(courses.filter(course => course.id !== courseToDelete.id));
             setShowDeleteModal(false);
+            toast.success('Course has been successfully deleted!', {
+                position: "bottom-right",
+                autoClose: 1000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
+            setTimeout(() => {
+                navigate(0);
+            }, 1500);
         } catch {
-            setError("Failed to delete course.");
+            toast.error('Failed to delete course.', {
+                position: "bottom-right",
+                autoClose: 4000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
         }
     };
 
@@ -71,6 +109,7 @@ const ManagerCourses = () => {
             
             const method = editingCourse ? "PATCH" : "POST";
             
+            
             await axios({
                 method,
                 url,
@@ -81,14 +120,52 @@ const ManagerCourses = () => {
                 }
             });
             setShowCourseModal(false);
-            navigate(0);
-        } catch {
-            setError("Failed to submit course.");
+            const successMessage = editingCourse 
+                ? 'Course has been updated successfully!' 
+                : 'Course has been created successfully!';
+            toast.success(successMessage, {
+                position: "bottom-right",
+                autoClose: 1000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
+                setTimeout(() => {
+                    navigate(0);
+              }, 1500);
+        } catch (error) {
+            const errorMessage = error.response && error.response.data && error.response.data.message
+                ? error.response.data.message
+                : 'Failed to submit course.';
+            toast.error(errorMessage, {
+                position: "bottom-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: false,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "light",
+                transition: Bounce,
+                });
         }
     };
 
     if (!token) {
-        return <h2>You need to be authenticated to view the courses.</h2>;
+        return (
+            <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+                <h2>You need to be authenticated to view the courses.</h2>;
+            </div>)
+    }
+    if (role !== "MANAGER") {
+        return (
+            <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+                <h2>You do not have permission to view this page.</h2>;
+            </div>)
     }
 
     return (
@@ -99,7 +176,6 @@ const ManagerCourses = () => {
                     Courses /
                 </div>
                 <h2 className="mb-4">My Courses</h2>
-                {error && <div className="alert alert-danger">{error}</div>}
                 <div className="row">
                     {courses.map(course => (
                         <div key={course.id} className="col-md-4">
@@ -150,16 +226,42 @@ const ManagerCourses = () => {
                         <Form onSubmit={handleSubmit(onSubmit)}>
                             <Form.Group className="mb-3">
                                 <Form.Label>Course Name</Form.Label>
+                                <OverlayTrigger
+                                    placement="right"
+                                    overlay={<Tooltip id="tooltip-description">Enter up to 255 characters.</Tooltip>}
+                                >
+                                    <span style={{ borderRadius: "50%", backgroundColor: "#f0f0f0", padding: "4px 8px", cursor: "pointer", marginLeft: "8px" }}>
+                                    i
+                                    </span>
+                                </OverlayTrigger>
                                 <Form.Control type="text" placeholder="Enter course name" {...register("name", { required: true })} />
                                 {errors.name && <p className="text-danger">Course name is required</p>}
                             </Form.Group>
                             <Form.Group className="mb-3">
                                 <Form.Label>Description</Form.Label>
+                                <OverlayTrigger
+                                    placement="right"
+                                    overlay={<Tooltip id="tooltip-description">Enter up to 255 characters.</Tooltip>}
+                                >
+                                    <span style={{ borderRadius: "50%", backgroundColor: "#f0f0f0", padding: "4px 8px", cursor: "pointer", marginLeft: "8px" }}>
+                                    i
+                                    </span>
+                                </OverlayTrigger>
                                 <Form.Control as="textarea" rows={4} placeholder="Enter course description" {...register("description", { required: true })} />
                                 {errors.description && <p className="text-danger">Description is required</p>}
                             </Form.Group>
                             <Form.Group className="mb-3">
                                 <Form.Label>Course Image</Form.Label>
+                                <OverlayTrigger
+                                    placement="right"
+                                    overlay={<Tooltip id="tooltip-description">Upload next formats: '.png', '.jpg', '.jpeg'<br />
+                                        Required when creating, optional when editing.
+                                    </Tooltip>}
+                                >
+                                    <span style={{ borderRadius: "50%", backgroundColor: "#f0f0f0", padding: "4px 8px", cursor: "pointer", marginLeft: "8px" }}>
+                                    i
+                                    </span>
+                                </OverlayTrigger>
                                 {previewImage && <img src={previewImage} alt="Preview" className="img-fluid mb-2" style={{ maxWidth: "100%" }} />}
                                 <Form.Control type="file" {...register("image")} onChange={onFileChange} />
                             </Form.Group>
@@ -168,6 +270,7 @@ const ManagerCourses = () => {
                     </Modal.Body>
                 </Modal>
             </div>
+            <ToastContainer />
         </div>
     );
 };

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { Card, Button, Modal, Form, Dropdown } from "react-bootstrap";
+import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
+import { Card, Button, Modal, Form, Dropdown, OverlayTrigger, Tooltip } from "react-bootstrap";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { ToastContainer, toast, Bounce } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ManagerAssignmentOverview = () => {
   const { courseId, assignmentId } = useParams();
@@ -19,11 +21,13 @@ const ManagerAssignmentOverview = () => {
   const [gradeScore, setGradeScore] = useState("");
   const [gradeFeedback, setGradeFeedback] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
 
   useEffect(() => {
+    if (!token || role !== "MANAGER") return;
     const fetchAssignment = async () => {
       try {
-        const token = localStorage.getItem("token");
         const url = selectedUserId
           ? `http://localhost:8080/assignment/${assignmentId}/overview?courseId=${courseId}&userId=${selectedUserId}`
           : `http://localhost:8080/assignment/${assignmentId}/overview?courseId=${courseId}`;
@@ -37,7 +41,20 @@ const ManagerAssignmentOverview = () => {
           setGradeFeedback(response.data.submission.grade.feedback || "");
         }
       } catch (error) {
-        console.error("Error fetching assignment overview", error);
+        const errorMessage = error.response && error.response.data && error.response.data.message
+            ? error.response.data.message
+            : 'Error fetching assignment overview: Internal Server Error';
+        toast.error(errorMessage, {
+            position: "bottom-right",
+            autoClose: 4000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+            });
       } finally {
         setIsLoading(false);
       }
@@ -47,17 +64,30 @@ const ManagerAssignmentOverview = () => {
   }, [assignmentId, selectedUserId]);
 
   useEffect(() => {
+    if (!token || role !== "MANAGER") return;
     if (!selectedUserId) {
       const fetchStudents = async () => {
         try {
-          const token = localStorage.getItem("token");
           const response = await axios.get(
             `http://localhost:8080/assignment/${assignmentId}/all-students`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           setStudents(response.data);
         } catch (error) {
-          console.error("Error fetching students", error);
+          const errorMessage = error.response && error.response.data && error.response.data.message
+              ? error.response.data.message
+              : 'Error fetching students: Internal Server Error';
+          toast.error(errorMessage, {
+              position: "bottom-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: false,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+              transition: Bounce,
+              });
         }
       };
       fetchStudents();
@@ -66,30 +96,42 @@ const ManagerAssignmentOverview = () => {
 
   const handleDownload = async (fileId) => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`http://localhost:8080/attachment/${fileId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        responseType: "json",
-      });
-      const { fileName, fileData } = response.data;
-      const byteCharacters = atob(fileData);
-      const byteNumbers = new Array(byteCharacters.length)
-        .fill(0)
-        .map((_, i) => byteCharacters.charCodeAt(i));
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray]);
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = fileName;
-      link.click();
+        const response = await axios.get(`http://localhost:8080/attachment/${fileId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            responseType: 'json',
+        });
+
+        const { fileName, fileData } = response.data;
+
+        const byteCharacters = atob(fileData);
+        const byteNumbers = new Array(byteCharacters.length).fill(0).map((_, i) => byteCharacters.charCodeAt(i));
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray]);
+
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
     } catch (error) {
-      console.error("Error downloading the file", error);
-    }
+        const errorMessage = error.response && error.response.data && error.response.data.message
+            ? error.response.data.message
+            : 'Failed to download file: Internal Server Error';
+        toast.error(errorMessage, {
+            position: "bottom-right",
+            autoClose: 4000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+            });
+      }
   };
 
   const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem("token");
       let url = "";
       let method = "";
 
@@ -106,7 +148,7 @@ const ManagerAssignmentOverview = () => {
         feedback: gradeFeedback,
       };
 
-      await axios({
+      const response = await axios({
         method,
         url,
         headers: { Authorization: `Bearer ${token}` },
@@ -114,38 +156,133 @@ const ManagerAssignmentOverview = () => {
       });
 
       setShowModal(false);
-      window.location.reload();
+      if (response.status === 201) {
+        toast.success('Grade has been successfully created!', {
+          position: "bottom-right",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        });
+      } else if (response.status === 200) {
+        toast.success('Grade has been successfully updated!', {
+          position: "bottom-right",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        });
+      }
+        setTimeout(() => {
+            navigate(0);
+      }, 1500);
     } catch (error) {
-      console.error("Error submitting grade", error);
+        const errorMessage =
+        error.response && error.response.data && error.response.data.message
+          ? error.response.data.message
+          : 'Error submitting grade: Internal Server Error';
+
+      if (error.response && error.response.status === 400) {
+        toast.error('Bad Request: Invalid score! Score must be greater than 0 and less or equals the max score', {
+          position: "bottom-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        });
+      } else if (error.response && error.response.status === 404) {
+        toast.error('Submission not found or grade already exists!', {
+          position: "bottom-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        });
+      } else {
+        toast.error(errorMessage, {
+          position: "bottom-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        });
+      }
     }
   };
 
   const handleDeleteConfirm = async () => {
     try {
-      const token = localStorage.getItem("token");
       await axios.delete(
         `http://localhost:8080/manager/grade/${assignment.submission.grade.id}/delete`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setShowDeleteConfirm(false);
-      window.location.reload();
+      toast.success('Grade has been successfully deleted', {
+          position: "bottom-right",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+          });
+          setTimeout(() => {
+              navigate(0);
+        }, 1500);
     } catch (error) {
-      console.error("Error deleting grade", error);
+      const errorMessage = error.response && error.response.data && error.response.data.message
+          ? error.response.data.message
+          : 'Error deleting grade: Internal Server Error';
+      toast.error(errorMessage, {
+          position: "bottom-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+          });
     }
   };
 
   const getFileIcon = (fileType) => {
     switch (fileType) {
-      case "PDF":
-        return "file-earmark-pdf";
-      case "DOCX":
-      case "DOC":
-        return "file-earmark-word";
-      case "XSLX":
-      case "XSL":
-        return "file-earmark-excel";
+      case 'PDF':
+        return 'file-earmark-pdf';
+      case 'DOCX':
+        return 'file-earmark-word';
+      case 'DOC':
+        return 'file-earmark-word';
+      case 'XSLX':
+        return 'file-earmark-excel';
+      case 'XSL':
+        return 'file-earmark-excel';
       default:
-        return "file-earmark";
+        return 'file-earmark';
     }
   };
 
@@ -153,17 +290,50 @@ const ManagerAssignmentOverview = () => {
     navigate(`/manager/course/${courseId}/assignment/${assignmentId}/overview?userId=${studentId}`);
   };
 
-  if (isLoading)
-    return <div className="text-center text-lg">Loading...</div>;
-  if (!assignment)
+  if (!token) {
     return (
-      <div className="text-center text-danger">Assignment not found.</div>
-    );
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>You need to be authenticated to view the courses.</h2>;
+        </div>)
+  }
+  if (role !== "MANAGER") {
+    return (
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>You do not have permission to view this page.</h2>;
+        </div>)
+  }
+  if (isLoading) {
+    return (
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>Loading...</h2>;
+        </div>)
+  }
+  if (!assignment) {
+    return (
+        <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
+            <h2>Assignment not found.</h2>;
+        </div>)
+  }
 
   return (
     <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
 
       <div className="container py-5">
+        <div className="mb-4 pb-2" style={{ borderBottom: "1px solid #ddd" }}>
+            <Link to={`/courses/${courseId}`} style={{ fontWeight: "bold", color: "#007bff", textDecoration: "none" }}>
+              Course detail
+            </Link>
+            <span style={{ margin: "0 8px" }}>/</span>
+            <Link to={`/course/${courseId}/overview`} style={{ fontWeight: "bold", color: "#007bff", textDecoration: "none" }}>
+              Course Overview
+            </Link>
+            <span style={{ margin: "0 8px" }}>/</span>
+            <span style={{ color: "#6c757d" }}>Assignment overview</span>
+            <span style={{ margin: "0 8px" }}>/</span>
+            <Link to={`/course/${courseId}/grades`} style={{ fontWeight: "bold", color: "#007bff", textDecoration: "none" }}>
+              Grades
+            </Link>
+          </div>
               {!selectedUserId && (
           <div className="mb-4">
             <h3>Choose student for grading:</h3>
@@ -227,7 +397,6 @@ const ManagerAssignmentOverview = () => {
         {assignment.submission ? (
           <div className="row">
             <div className="col-12 mb-4">
-              {/* Відображення подання (read-only) */}
               <Card className="bg-light border shadow-sm p-4 rounded-lg">
                 <div className="d-flex justify-content-between align-items-center">
                   <h3 className="text-dark">Submission</h3>
@@ -291,7 +460,7 @@ const ManagerAssignmentOverview = () => {
                   </p>
                   <p>
                     <strong>Feedback:</strong>{" "}
-                    {assignment.submission.grade.feedback}
+                    {assignment.submission.grade.feedback || "No feedback."}
                   </p>
                   <p>
                     <strong>Manager:</strong>{" "}
@@ -322,6 +491,14 @@ const ManagerAssignmentOverview = () => {
           <Modal.Body>
             <Form.Group className="mb-3">
               <Form.Label>Score</Form.Label>
+              <OverlayTrigger
+                  placement="right"
+                  overlay={<Tooltip id="tooltip-description">Score must be greater than 0 and less or equals to max score for this assignment.</Tooltip>}
+              >
+                  <span style={{ borderRadius: "50%", backgroundColor: "#f0f0f0", padding: "4px 8px", cursor: "pointer", marginLeft: "8px" }}>
+                  i
+                  </span>
+              </OverlayTrigger>
               <Form.Control
                 type="number"
                 value={gradeScore}
@@ -330,6 +507,14 @@ const ManagerAssignmentOverview = () => {
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Feedback</Form.Label>
+              <OverlayTrigger
+                  placement="right"
+                  overlay={<Tooltip id="tooltip-description">This field is optional. Enter up to 255 characters.</Tooltip>}
+              >
+                  <span style={{ borderRadius: "50%", backgroundColor: "#f0f0f0", padding: "4px 8px", cursor: "pointer", marginLeft: "8px" }}>
+                  i
+                  </span>
+              </OverlayTrigger>
               <Form.Control
                 as="textarea"
                 value={gradeFeedback}
@@ -366,6 +551,7 @@ const ManagerAssignmentOverview = () => {
           </Modal.Footer>
         </Modal>
       </div>
+      <ToastContainer />
     </div>
   );
 };
