@@ -2,7 +2,7 @@ package com.liushukov.courseFlow.controllers;
 
 import com.liushukov.courseFlow.dtos.CourseOverviewDto;
 import com.liushukov.courseFlow.dtos.CoursePageResponseDto;
-import com.liushukov.courseFlow.dtos.CourseResponseDto;
+import com.liushukov.courseFlow.dtos.CourseResponseWrapperDto;
 import com.liushukov.courseFlow.models.Course;
 import com.liushukov.courseFlow.models.Enrollment;
 import com.liushukov.courseFlow.models.User;
@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -54,13 +53,18 @@ public class CourseController {
 
     @GetMapping(path = "/all")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<CourseResponseDto>> allUsers(
+    public ResponseEntity<CourseResponseWrapperDto> allUsers(
+            Authentication authentication,
             @RequestParam(value = "sortBy", defaultValue = "id") String sortBy,
             @RequestParam(value = "orderBy", defaultValue = "asc") String orderBy,
-            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
-            @RequestParam(value = "pageSize", defaultValue = "20", required = false) int pageSize
+            @RequestParam(value = "page", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(value = "size", defaultValue = "20", required = false) int pageSize,
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "flag") Boolean flag
     ) {
-        List<CourseResponseDto> courses = courseService.getAllCourses(sortBy, orderBy, pageNumber, pageSize);
+        User user = userService.getUserFromAuthentication(authentication);
+        CourseResponseWrapperDto courses = courseService.getAllCourses(sortBy, orderBy, pageNumber, pageSize, name, flag,
+                user.getId());
         return ResponseEntity.status(HttpStatus.OK).body(courses);
     }
 

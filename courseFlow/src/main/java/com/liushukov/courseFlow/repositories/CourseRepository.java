@@ -16,6 +16,15 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
 
     @Query("SELECT c FROM Course c WHERE c.user.id = :userId")
     Page<Course> findCoursesByManager(@Param("userId") Long userId, Pageable pageable);
-    @Query("SELECT c FROM Course c WHERE c.enrollmentCode = :enrollmentCode")
-    Optional<Course> findCourseByEnrollmentCode(@Param("enrollmentCode") String enrollmentCode);
+
+    @Query("""
+           SELECT DISTINCT c FROM Course c
+           LEFT JOIN c.enrollments e WITH e.user.id = :userId
+           WHERE (COALESCE(:name, '') = '' OR LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%')))
+           AND (:flag = false OR e IS NOT NULL)
+            """)
+    Page<Course> findCoursesByCriteria(@Param("userId") Long userId,
+                                       @Param("name") String name,
+                                       @Param("flag") boolean flag,
+                                       Pageable pageable);
 }

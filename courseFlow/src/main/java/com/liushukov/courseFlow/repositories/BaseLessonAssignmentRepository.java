@@ -1,6 +1,5 @@
 package com.liushukov.courseFlow.repositories;
 
-import com.liushukov.courseFlow.dtos.StudentTotalGradeProjection;
 import com.liushukov.courseFlow.models.Assignment;
 import com.liushukov.courseFlow.models.BaseLessonAssignment;
 import com.liushukov.courseFlow.models.Lesson;

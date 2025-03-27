@@ -16,7 +16,8 @@ public interface CourseService {
 
     CoursePageResponseDto toCoursePageResponseDto(Course course, User user, boolean enrolled);
 
-    List<CourseResponseDto> getAllCourses(String sortBy, String orderBy, int pageNumber, int pageSize);
+    CourseResponseWrapperDto getAllCourses(String sortBy, String orderBy, int pageNumber, int pageSize, String name,
+                                          boolean flag, long id);
 
     List<CourseManagerResponseDto> getCoursesByManager(long userId, int pageNumber, int pageSize);
 

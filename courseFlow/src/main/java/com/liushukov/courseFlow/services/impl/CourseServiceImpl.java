@@ -8,6 +8,7 @@ import com.liushukov.courseFlow.models.User;
 import com.liushukov.courseFlow.repositories.CourseRepository;
 import com.liushukov.courseFlow.repositories.ModuleRepository;
 import com.liushukov.courseFlow.services.CourseService;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -110,13 +111,22 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseResponseDto> getAllCourses(String sortBy, String orderBy, int pageNumber, int pageSize) {
+    public CourseResponseWrapperDto getAllCourses(String sortBy, String orderBy, int pageNumber, int pageSize,
+                                                 String name, boolean flag, long userId) {
         Pageable pageable;
         switch (orderBy) {
             case "desc" -> pageable = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
             default -> pageable = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).ascending());
         }
-        return courseRepository.findAll(pageable).getContent().stream().map(this::toCourseResponseDto).toList();
+        Page<Course> coursePage = courseRepository.findCoursesByCriteria(userId, name, flag, pageable);
+        int totalPages = (int) Math.ceil((double) (int) coursePage.getTotalElements() / pageSize);
+        return new CourseResponseWrapperDto(
+                totalPages,
+                coursePage.getContent()
+                .stream()
+                .map(this::toCourseResponseDto)
+                .toList()
+        );
     }
 
     @Override

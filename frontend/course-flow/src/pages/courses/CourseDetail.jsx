@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import { Modal, Button, Form } from "react-bootstrap";
+import { Modal, Button, Form, ButtonGroup, Dropdown } from "react-bootstrap";
 import { ToastContainer, toast, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -10,6 +10,7 @@ const CourseDetail = () => {
   const [course, setCourse] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showUnenrollModal, setShowUnenrollModal] = useState(false);
   const [enrollmentCode, setEnrollmentCode] = useState("");
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -64,7 +65,7 @@ const CourseDetail = () => {
       if (response.status === 204) {
         toast.success('Enrollment successful! Redirecting to learning page...', {
           position: "bottom-right",
-          autoClose: 3000,
+          autoClose: 2000,
           hideProgressBar: false,
           closeOnClick: false,
           pauseOnHover: true,
@@ -73,9 +74,9 @@ const CourseDetail = () => {
           theme: "light",
           transition: Bounce,
           });
-          setTimeout(() => {
-            navigate(`/course/${id}/overview`);
-        }, 4000); 
+        setTimeout(() => {
+          navigate(`/course/${id}/overview`);
+        }, 3000); 
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Please check your enrollment code.';
@@ -90,6 +91,44 @@ const CourseDetail = () => {
           theme: "light",
           transition: Bounce,
       });
+    }
+  };
+
+  const handleUnenroll = async () => {
+    setShowUnenrollModal(false);
+    try {
+      const response = await axios.delete(`http://localhost:8080/enroll/cancel/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.status === 204) {
+        toast.success('Successfully unenrolled.', {
+            position: "bottom-right",
+            autoClose: 1000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+            });
+        setTimeout(() => {
+            navigate('/');
+        }, 1500);
+      }
+    } catch (error) {
+      toast.error(`Error unenrolling: ${error.response?.data?.message || 'Something went wrong'}`, {
+          position: "bottom-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+          });
     }
   };
 
@@ -149,17 +188,24 @@ const CourseDetail = () => {
                 <h1>{course.name}</h1>
               </div>
               <p>{course.description}</p>
-              <p>
+              <div>
                 {course.enrolled ? (
-                  <button className="btn btn-success" onClick={() => navigate(`/course/${id}/overview`)}>
-                    Start Learning!
-                  </button>
+                  <Dropdown as={ButtonGroup}>
+                    <Button variant="success" onClick={() => navigate(`/course/${id}/overview`)}>
+                      Start Learning!
+                    </Button>
+                    <Dropdown.Toggle split variant="success" id="dropdown-split-basic" />
+                    <Dropdown.Menu>
+                      <Dropdown.Item onClick={() => navigate(`/course/${id}/grades`)}>Grades</Dropdown.Item>
+                      <Dropdown.Item onClick={() => setShowUnenrollModal(true)}>Unenroll</Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
                 ) : (
                   <button className="btn btn-primary" onClick={() => setShowModal(true)}>
                     Enroll Now
                   </button>
                 )}
-              </p>
+              </div>
             </div>
           </div>
         </div>
@@ -189,6 +235,17 @@ const CourseDetail = () => {
             <Button variant="primary" onClick={handleEnroll}>
               Submit
             </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal show={showUnenrollModal} onHide={() => setShowUnenrollModal(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Confirm Unenrollment</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>Are you sure you want to unenroll from this course?</Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowUnenrollModal(false)}>Cancel</Button>
+            <Button variant="danger" onClick={handleUnenroll}>Unenroll</Button>
           </Modal.Footer>
         </Modal>
       </div>

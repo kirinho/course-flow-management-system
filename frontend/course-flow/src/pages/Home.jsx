@@ -51,7 +51,7 @@ const Home = () => {
                         <div className="p-5" style={{ maxWidth: '900px', margin: 'auto' }}>
                             <h5 className="text-white text-uppercase mb-3">Innovative Learning</h5>
                             <h1 className="display-3 text-white mb-4">Discover Knowledge Without Limits</h1>
-                            <a href="/courses" className="btn btn-primary py-2 px-4 font-weight-semi-bold mt-2">Explore Now</a>
+                            <a href="/courses" className="btn btn-primary py-2 px-4 font-weight-semi-bold mt-2">Learn More</a>
                         </div>
                     </Carousel.Caption>
                 </Carousel.Item>
@@ -62,7 +62,7 @@ const Home = () => {
                         <div className="p-5" style={{ maxWidth: '900px', margin: 'auto' }}>
                             <h5 className="text-white text-uppercase mb-3">Shape Your Future</h5>
                             <h1 className="display-3 text-white mb-4">Learn, Grow, and Succeed</h1>
-                            <a href="/courses" className="btn btn-primary py-2 px-4 font-weight-semi-bold mt-2">Start Today</a>
+                            <a href="/courses" className="btn btn-primary py-2 px-4 font-weight-semi-bold mt-2">Learn More</a>
                         </div>
                     </Carousel.Caption>
                 </Carousel.Item>
