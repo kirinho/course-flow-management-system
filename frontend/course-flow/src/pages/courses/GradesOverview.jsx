@@ -104,6 +104,42 @@ const GradesOverview = () => {
     }
   };
 
+  const handleDownload = async () => {
+    try {
+        const response = await axios.get(`http://localhost:8080/attachment/generate/${courseId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            responseType: 'json',
+        });
+
+        const { fileName, fileData } = response.data;
+
+        const byteCharacters = atob(fileData);
+        const byteNumbers = new Array(byteCharacters.length).fill(0).map((_, i) => byteCharacters.charCodeAt(i));
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray]);
+
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
+    } catch (error) {
+        const errorMessage = error.response && error.response.data && error.response.data.message
+            ? error.response.data.message
+            : 'Failed to download file: Internal Server Error';
+        toast.error(errorMessage, {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+            });
+      }
+  };
+
   if (!token) {
     return (
         <div className="d-flex align-items-start justify-content-center min-vh-100" style={{ paddingTop: "3rem" }}>
@@ -140,6 +176,9 @@ const GradesOverview = () => {
         {role === "MANAGER" ? (
           <>
             <h1 className="text-center mb-4">Students Overview</h1>
+            <Button variant="primary" className="mb-3" onClick={handleDownload}>
+              Download Report
+            </Button>
             <Card className="shadow-sm p-4">
               <Table striped bordered hover>
                 <thead className="thead-dark">
