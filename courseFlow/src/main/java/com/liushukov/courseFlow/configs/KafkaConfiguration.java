@@ -9,7 +9,8 @@ import java.util.Map;
 
 @Configuration
 public class KafkaConfiguration {
-
+    @Value("${kafka.grade.topic}")
+    private String gradeTopicName;
     @Value("${kafka.verification.topic}")
     private String verificationTopicName;
     @Value("${spring.kafka.producer.bootstrap-servers}")
@@ -23,5 +24,10 @@ public class KafkaConfiguration {
     @Bean
     public NewTopic verificationEmail() {
         return new NewTopic(verificationTopicName, 1, (short) 1);
+    }
+
+    @Bean
+    public NewTopic gradeEmailNotification() {
+        return new NewTopic(gradeTopicName, 1, (short) 1);
     }
 }

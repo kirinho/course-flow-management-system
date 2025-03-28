@@ -1,5 +1,6 @@
 package com.liushukov.courseFlow.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.liushukov.courseFlow.dtos.AssignmentUserGradeResponseDto;
 import com.liushukov.courseFlow.dtos.GradeCreateDto;
 import com.liushukov.courseFlow.dtos.GradeUpdateDto;
@@ -18,9 +19,9 @@ public interface GradeService {
 
     List<UserGradesResponseDto> getStudentsWithGradesByCourse(long courseId);
 
-    void createGrade(GradeCreateDto gradeCreateDto, User manager, Submission submission);
+    void createGrade(GradeCreateDto gradeCreateDto, User manager, Submission submission) throws JsonProcessingException;
 
-    void updateGrade(Grade grade, GradeUpdateDto gradeUpdateDto);
+    void updateGrade(Grade grade, GradeUpdateDto gradeUpdateDto) throws JsonProcessingException;
 
     void deleteGrade(Grade grade);
 }

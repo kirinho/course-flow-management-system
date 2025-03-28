@@ -20,13 +20,10 @@ import java.util.UUID;
 
 @Service
 public class VerificationAccountServiceImpl implements VerificationAccountService {
-
     @Value("${security.authenticate.user.account.url}")
     private String url;
-
     @Value("${kafka.verification.topic}")
     private String verificationTopicName;
-
     private final EmailTokenRepository emailTokenRepository;
     private final UserRepository userRepository;
     private final KafkaTemplate<Object, Object> template;

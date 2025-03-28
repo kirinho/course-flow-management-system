@@ -1,5 +1,6 @@
 package com.liushukov.courseFlow.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.liushukov.courseFlow.dtos.GradeCreateDto;
 import com.liushukov.courseFlow.dtos.GradeUpdateDto;
 import com.liushukov.courseFlow.dtos.UserGradesResponseDto;
@@ -57,7 +58,7 @@ public class GradeManagerController {
             Authentication authentication,
             @PathVariable(value = "submissionId") Long submissionId,
             @Valid @RequestBody GradeCreateDto gradeCreateDto
-    ) {
+    ) throws JsonProcessingException {
         User manager = userService.getUserFromAuthentication(authentication);
         Optional<Submission> submission = submissionService.getSubmissionById(submissionId);
         if (manager.isEnabled() && submission.isPresent()) {
@@ -77,7 +78,7 @@ public class GradeManagerController {
     public ResponseEntity<Void> update(
             @PathVariable(value = "gradeId") Long gradeId,
             @Valid @RequestBody GradeUpdateDto gradeUpdateDto
-    ) {
+    ) throws JsonProcessingException {
         Optional<Grade> grade = gradeService.getGradeById(gradeId);
         if (grade.isPresent()) {
             if (gradeUpdateDto.score() != null && gradeUpdateDto.score() > 0
