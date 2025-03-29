@@ -8,6 +8,9 @@ import com.liushukov.courseFlow.repositories.UserRepository;
 import com.liushukov.courseFlow.services.UserService;
 import com.liushukov.courseFlow.services.VerificationAccountService;
 import jakarta.transaction.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -25,12 +28,17 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, VerificationAccountService verificationAccountService) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                           VerificationAccountService verificationAccountService,
+                           @Lazy UserService userService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userService = userService;
     }
 
+    @Cacheable(value = "userCache", key = "#username")
     public User getUserDetails(String username) {
         return userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -40,12 +48,13 @@ public class UserServiceImpl implements UserService {
         try {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String username = userDetails.getUsername();
-            return getUserDetails(username);
+            return userService.getUserDetails(username);
         } catch (Exception exception) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User retrieval exception", exception);
         }
     }
 
+    @Cacheable(value = "userCache", key = "#id")
     public Optional<User> getUserById(Long id) {
         return userRepository.findById(id);
     }
@@ -69,6 +78,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(manager);
     }
 
+    @CacheEvict(value = "userCache", key = "#user.email")
     @Transactional
     public User updateUser(User user, UpdateUserDto userDto) {
         if (userDto.fullName() != null) {
@@ -80,6 +90,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(user);
     }
 
+    @CacheEvict(value = "userCache", key = "#user.id")
     @Transactional
     public void deleteUser(User user) {
         user.setEnabled(false);

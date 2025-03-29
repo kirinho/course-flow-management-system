@@ -34,7 +34,7 @@ const Navbar = () => {
                         <div className="collapse navbar-collapse justify-content-between" id="navbarCollapse">
                             <div className="navbar-nav py-0">
                                 <Link className="nav-item nav-link active" to="/">Home</Link>
-                                <Link className="nav-item nav-link" to="/about">About</Link>
+                                <Link className="nav-item nav-link" to="/" onClick={() => window.location.hash = '#about'}>About</Link>
                                 <Link className="nav-item nav-link" to="/courses">Courses</Link>
                                 {role === 'MANAGER' && (
                                     <Link className="nav-item nav-link" to="/manager/courses">Manage Courses</Link>

@@ -8,6 +8,8 @@ import com.liushukov.courseFlow.models.User;
 import com.liushukov.courseFlow.repositories.CourseRepository;
 import com.liushukov.courseFlow.repositories.ModuleRepository;
 import com.liushukov.courseFlow.services.CourseService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,11 +36,11 @@ public class CourseServiceImpl implements CourseService {
         this.moduleRepository = moduleRepository;
     }
 
+    @Cacheable(value = "courses", key = "#id", unless = "#result == null")
     @Override
     public Optional<Course> getCourseById(long id) {
         return courseRepository.findCourseById(id);
     }
-
 
     private CourseResponseDto toCourseResponseDto(Course course) {
         return new CourseResponseDto(
@@ -147,6 +149,7 @@ public class CourseServiceImpl implements CourseService {
         courseRepository.save(course);
     }
 
+    @CacheEvict(value = "courses", key = "#course.id", condition = "#course != null")
     @Override
     public void updateCourse(Course course, CourseDto courseDto, MultipartFile image) throws IOException {
         if (courseDto.name() != null) {
@@ -161,6 +164,7 @@ public class CourseServiceImpl implements CourseService {
         courseRepository.save(course);
     }
 
+    @CacheEvict(value = "courses", key = "#course.id", condition = "#course != null")
     @Override
     public void deleteCourse(Course course) {
         courseRepository.delete(course);

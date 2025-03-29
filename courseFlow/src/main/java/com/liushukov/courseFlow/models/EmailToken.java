@@ -3,12 +3,14 @@ package com.liushukov.courseFlow.models;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tokens")
-public class EmailToken {
+public class EmailToken implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

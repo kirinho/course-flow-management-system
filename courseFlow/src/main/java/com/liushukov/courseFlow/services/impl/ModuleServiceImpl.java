@@ -5,6 +5,8 @@ import com.liushukov.courseFlow.models.Course;
 import com.liushukov.courseFlow.models.Module;
 import com.liushukov.courseFlow.repositories.ModuleRepository;
 import com.liushukov.courseFlow.services.ModuleService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ public class ModuleServiceImpl implements ModuleService {
         this.moduleRepository = moduleRepository;
     }
 
+    @Cacheable(value = "modules", key = "#moduleId", unless = "#result == null")
     @Override
     public Optional<Module> getModuleById(long moduleId) {
         return moduleRepository.findModuleById(moduleId);
@@ -51,6 +54,7 @@ public class ModuleServiceImpl implements ModuleService {
         moduleRepository.save(module);
     }
 
+    @CacheEvict(value = "modules", key = "#module.id", condition = "#module != null")
     @Override
     public void updateModule(Module module, ModuleUpdateDto moduleUpdateDto) {
         if (moduleUpdateDto.name() != null) {
@@ -63,6 +67,7 @@ public class ModuleServiceImpl implements ModuleService {
         moduleRepository.save(module);
     }
 
+    @CacheEvict(value = "modules", key = "#module.id", condition = "#module != null")
     @Override
     public void deleteModule(Module module) {
         moduleRepository.delete(module);

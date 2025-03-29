@@ -8,6 +8,8 @@ import com.liushukov.courseFlow.repositories.BaseLessonAssignmentRepository;
 import com.liushukov.courseFlow.repositories.SubmissionRepository;
 import com.liushukov.courseFlow.services.AssignmentService;
 import jakarta.transaction.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,6 +33,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         this.submissionRepository = submissionRepository;
     }
 
+    @Cacheable(value = "assignments", key = "#id", unless = "#result == null")
     @Override
     public Optional<Assignment> getAssignmentById(long id) {
         return repository.findAssignmentById(id);
@@ -101,6 +104,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         }
     }
 
+    @CacheEvict(value = "assignments", key = "#assignment.id", condition = "#assignment != null")
     @Transactional
     @Override
     public void updateAssignment(Assignment assignment, AssignmentUpdateDto assignmentUpdateDto, MultipartFile[] files) {
@@ -124,6 +128,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         }
     }
 
+    @CacheEvict(value = "assignments", key = "#assignment.id", condition = "#assignment != null")
     @Override
     public void deleteAssignment(Assignment assignment) {
         repository.delete(assignment);

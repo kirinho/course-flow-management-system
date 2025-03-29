@@ -12,6 +12,8 @@ import com.liushukov.courseFlow.repositories.AttachmentRepository;
 import com.liushukov.courseFlow.repositories.BaseLessonAssignmentRepository;
 import com.liushukov.courseFlow.services.LessonService;
 import jakarta.transaction.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,6 +34,7 @@ public class LessonServiceImpl implements LessonService {
         this.attachmentRepository = attachmentRepository;
     }
 
+    @Cacheable(value = "lessons", key = "#id", unless = "#result == null")
     @Override
     public Optional<Lesson> getLessonById(long id) {
         return repository.findLessonById(id);
@@ -69,6 +72,7 @@ public class LessonServiceImpl implements LessonService {
         }
     }
 
+    @CacheEvict(value = "lessons", key = "#lesson.id", condition = "#lesson != null")
     @Transactional
     @Override
     public void updateLesson(Lesson lesson, LessonUpdateDto lessonUpdateDto, MultipartFile[] files) {
@@ -89,6 +93,7 @@ public class LessonServiceImpl implements LessonService {
         }
     }
 
+    @CacheEvict(value = "lessons", key = "#lesson.id", condition = "#lesson != null")
     @Override
     public void deleteLesson(Lesson lesson) {
         repository.delete(lesson);
