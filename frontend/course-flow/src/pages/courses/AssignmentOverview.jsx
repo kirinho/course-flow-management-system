@@ -425,7 +425,7 @@ const AssignmentOverview = () => {
                 <Form.Label>Attachments</Form.Label>
                 <OverlayTrigger
                     placement="right"
-                    overlay={<Tooltip id="tooltip-description">Upload files: '.doc', 'docx', '.pdf', '.xsl', 'xslx'.<br />
+                    overlay={<Tooltip id="tooltip-description">Upload files: '.doc', 'docx', '.pdf', '.xsl', 'xslx' UP TO 5 MB.<br />
                     Note: during update your files will be appended to your current files!
                     </Tooltip>}
                 >
